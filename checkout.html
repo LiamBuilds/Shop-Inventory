@@ -189,25 +189,35 @@
     let t; function toast(m){ const e=document.getElementById('toast'); e.textContent=m; e.classList.add('show'); clearTimeout(t); t=setTimeout(()=>e.classList.remove('show'),1800); }
     const fmt = d => d.toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric'});
 
+    let submitting = false;
     document.getElementById('submit').addEventListener('click', async () => {
+      if(submitting) return;                                             // ignore rapid double-taps
+      const btn = document.getElementById('submit');
       const name=document.getElementById('name').value;
       const tool=document.getElementById('tool').value;
       const dest=document.getElementById('dest').value.trim();
       const days=parseInt(document.getElementById('dur').value,10);
       if(!name){ toast("Pick your name"); return; }
       if(!tool){ toast("Pick a tool"); return; }
+      submitting = true;
+      btn.disabled = true;
+      btn.textContent = "Checking out…";
       const due=new Date(); due.setDate(due.getDate()+days);
       const payload={ person:name, tool, destination:dest, dueDate:due.toISOString().slice(0,10), checkedOutAt:new Date().toISOString() };
 
       if(CHECKOUT_WEBHOOK){
         try{ await fetch(CHECKOUT_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); }
-        catch(e){ toast("No signal, try again"); return; }
+        catch(e){ toast("No signal, try again"); submitting=false; btn.disabled=false; btn.textContent="Check Out Tool"; return; }
       }
 
       document.getElementById('doneLine').innerHTML = '<b>'+tool+'</b> is now out to '+name+'.';
       document.getElementById('doneMeta').textContent = (days===0?'Due back today':'Due back '+fmt(due)) + (dest?' \u00b7 '+dest:'');
       document.getElementById('formScreen').style.display='none';
       document.getElementById('doneScreen').classList.add('show');
+      // Reset state for next checkout (in case user taps "Check out another")
+      submitting = false;
+      btn.disabled = false;
+      btn.textContent = "Check Out Tool";
     });
 
     document.getElementById('another').addEventListener('click', () => {
