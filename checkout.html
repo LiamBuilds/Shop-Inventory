@@ -82,66 +82,16 @@
         <label for="name">Your name</label>
         <select id="name">
           <option value="" selected disabled>Select your name</option>
-        <option>Ray G.</option>
-        <option>James G.</option>
-        <option>Jennifer S.</option>
-        <option>Freddie</option>
-        <option>Pat D.</option>
-        </select>
+        <option value="" disabled id="namePlaceholder">Loading…</option>
+</select>
       </div>
 
       <div class="field">
         <label for="tool">Which tool</label>
         <select id="tool">
           <option value="" selected disabled>Select a tool</option>
-        <optgroup label="Equipment">
-          <option>Generators</option>
-          <option>Small Air Compressors</option>
-          <option>2-Way Water Pumps</option>
-          <option>Hand Held Floor Grinder</option>
-          <option>Walk Behind Cement Cutter (with 3 blades)</option>
-        </optgroup>
-        <optgroup label="Ladders">
-          <option>16 ft Folding Ladder</option>
-          <option>6 ft Folding Ladder</option>
-          <option>4 ft Folding Ladder</option>
-          <option>24 ft Extension Ladder</option>
-          <option>16 ft Extension Ladder</option>
-          <option>8 ft Extension Ladder</option>
-        </optgroup>
-        <optgroup label="Tools">
-          <option>Post Pounders</option>
-          <option>5 ft Pry Bars</option>
-          <option>Flat Head Shovel</option>
-          <option>Spade Shovel</option>
-          <option>Ditch Shovel</option>
-        </optgroup>
-        <optgroup label="Cleaning">
-          <option>Large Squeegees</option>
-          <option>Dust Mops</option>
-          <option>Push Brooms</option>
-          <option>Dust Pans</option>
-        </optgroup>
-        <optgroup label="Landscaping">
-          <option>Garden Rakes</option>
-          <option>Landscaping Rakes</option>
-          <option>Post Hole Diggers</option>
-        </optgroup>
-        <optgroup label="Large Grey Bins">
-          <option>Electrical Cords</option>
-          <option>Flat Piano Dollies</option>
-          <option>Water Hoses</option>
-          <option>Safety Cones</option>
-        </optgroup>
-        <optgroup label="Pallets">
-          <option>3 inch Water Line</option>
-          <option>Fiber Lines</option>
-          <option>Black Pallets</option>
-          <option>Blue 1.5 inch Hoses</option>
-          <option>4 inch Scrapers Blades</option>
-          <option>8 inch Scrapers (5 ft)</option>
-        </optgroup>
-        </select>
+        <option value="" disabled id="toolPlaceholder">Loading…</option>
+</select>
       </div>
 
       <div class="field">
@@ -181,6 +131,54 @@
   <div class="toast" id="toast"></div>
 
   <script>
+    // ---- Dropdown data feed (live from Excel via n8n) ----
+    const GET_LISTS_URL = "https://haggertybuilds.app.n8n.cloud/webhook/shop-lists";
+
+    async function loadDropdowns() {
+      const nameSel = document.getElementById('name');
+      const toolSel = document.getElementById('tool');
+      try {
+        const res = await fetch(GET_LISTS_URL, { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+
+        // People dropdown
+        const namePh = document.getElementById('namePlaceholder');
+        if (namePh) namePh.remove();
+        (data.people || []).forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.name;
+          opt.textContent = p.name;
+          nameSel.appendChild(opt);
+        });
+
+        // Tools dropdown — group by category if categories exist
+        const toolPh = document.getElementById('toolPlaceholder');
+        if (toolPh) toolPh.remove();
+        const tools = data.tools || [];
+        const byCat = {};
+        tools.forEach(t => {
+          const cat = t.category || 'Tools';
+          (byCat[cat] = byCat[cat] || []).push(t);
+        });
+        Object.keys(byCat).sort().forEach(cat => {
+          const group = document.createElement('optgroup');
+          group.label = cat;
+          byCat[cat].forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t.item;
+            opt.textContent = t.item;
+            group.appendChild(opt);
+          });
+          toolSel.appendChild(group);
+        });
+      } catch (err) {
+        console.error('Could not load lists:', err);
+        toast('Could not load list — refresh and try again');
+      }
+    }
+    loadDropdowns();
+
     // ---- Fill these in once they exist ----
     const LAUNCHER_URL = "index.html";          // address of the Haggerty Shop Tools launcher page
     const CHECKOUT_WEBHOOK = "";      // n8n webhook that records the checkout
