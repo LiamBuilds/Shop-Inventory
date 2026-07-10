@@ -61,6 +61,31 @@
     border-radius:14px; padding:18px; font-size:17px; font-weight:600; font-family:inherit; cursor:pointer; text-decoration:none; text-align:center;}
   .solid{appearance:none; border:0; background:var(--orange); color:var(--ink);
     border-radius:14px; padding:18px; font-size:17px; font-weight:700; font-family:inherit; cursor:pointer; text-decoration:none; text-align:center;}
+
+  .catBar{display:flex; align-items:center; justify-content:space-between; gap:12px;
+    background:rgba(246,137,34,.10); border:1px solid rgba(246,137,34,.35); border-radius:12px;
+    padding:12px 14px; margin-bottom:20px;}
+  .catInfo{display:flex; flex-direction:column; gap:2px; min-width:0;}
+  .catLabel{font-size:11px; font-weight:700; letter-spacing:.08em; color:var(--orange);}
+  .catValue{font-size:16px; font-weight:600; color:var(--paper); word-wrap:break-word;}
+  .catChange{appearance:none; background:transparent; border:1.5px solid var(--gray); color:var(--paper);
+    padding:8px 14px; border-radius:9px; font-size:13px; font-weight:600; font-family:inherit;
+    cursor:pointer; flex-shrink:0;}
+  .catChange:active{background:var(--card);}
+
+  .catOverlay{position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:50;
+    align-items:flex-end; justify-content:center; padding:0;}
+  .catSheet{background:var(--bg); width:100%; max-width:460px; border-radius:20px 20px 0 0;
+    padding:22px 20px calc(24px + env(safe-area-inset-bottom)); max-height:80vh; overflow-y:auto;}
+  .catSheetTop{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
+  .catSheetTitle{font-family:Georgia,serif; font-size:20px; color:var(--paper);}
+  .catSheetClose{appearance:none; background:transparent; border:0; color:var(--muted); cursor:pointer; padding:4px;}
+  .catList{display:flex; flex-direction:column; gap:8px;}
+  .catBtn{appearance:none; background:var(--card); color:var(--paper); border:1.5px solid var(--line);
+    border-radius:12px; padding:16px; font-size:16px; font-family:inherit; text-align:left; cursor:pointer;
+    transition:background .12s;}
+  .catBtn:active{background:var(--line);}
+  .catBtn.active{border-color:var(--orange); background:rgba(246,137,34,.10);}
 </style>
 </head>
 <body>
@@ -77,6 +102,14 @@
       <div class="rule"></div>
 
       <p class="lead">Grab a tool</p>
+
+      <div class="catBar" id="catBar" style="display:none;">
+        <div class="catInfo">
+          <span class="catLabel">CATEGORY</span>
+          <span class="catValue" id="catName"></span>
+        </div>
+        <button type="button" class="catChange" id="catChange">Change</button>
+      </div>
 
       <div class="field">
         <label for="name">Your name</label>
@@ -127,6 +160,18 @@
       </div>
     </div>
   </main>
+  <div class="catOverlay" id="catOverlay" style="display:none;" onclick="if(event.target===this)this.style.display='none';">
+    <div class="catSheet">
+      <div class="catSheetTop">
+        <div class="catSheetTitle">Pick a category</div>
+        <button class="catSheetClose" onclick="document.getElementById('catOverlay').style.display='none';" aria-label="Close">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="catList" id="catList"></div>
+    </div>
+  </div>
+
 
   <div class="toast" id="toast"></div>
 
@@ -134,13 +179,22 @@
     // ---- Dropdown data feed (live from Excel via n8n) ----
     const GET_LISTS_URL = "https://haggertybuilds.app.n8n.cloud/webhook/shop-lists";
 
+    // Cache the fetched data for category switching
+    let cachedData = null;
+    // Get category filter from URL, e.g. ?category=Generators
+    function getCategoryFromURL() {
+      const p = new URLSearchParams(window.location.search);
+      return p.get('category') || '';
+    }
+    let activeCategory = getCategoryFromURL();
+
     async function loadDropdowns() {
       const nameSel = document.getElementById('name');
-      const toolSel = document.getElementById('tool');
       try {
         const res = await fetch(GET_LISTS_URL, { cache: 'no-store' });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
+        cachedData = data;
 
         // People dropdown
         const namePh = document.getElementById('namePlaceholder');
@@ -152,32 +206,75 @@
           nameSel.appendChild(opt);
         });
 
-        // Tools dropdown — group by category if categories exist
-        const toolPh = document.getElementById('toolPlaceholder');
-        if (toolPh) toolPh.remove();
-        const tools = data.tools || [];
-        const byCat = {};
-        tools.forEach(t => {
-          const cat = t.category || 'Tools';
-          (byCat[cat] = byCat[cat] || []).push(t);
-        });
-        Object.keys(byCat).sort().forEach(cat => {
-          const group = document.createElement('optgroup');
-          group.label = cat;
-          byCat[cat].forEach(t => {
-            const opt = document.createElement('option');
-            opt.value = t.item;
-            opt.textContent = t.item;
-            group.appendChild(opt);
-          });
-          toolSel.appendChild(group);
-        });
+        renderToolDropdown();
+        renderCategoryBadge();
       } catch (err) {
         console.error('Could not load lists:', err);
         toast('Could not load list — refresh and try again');
       }
     }
+
+    function renderToolDropdown() {
+      if (!cachedData) return;
+      const toolSel = document.getElementById('tool');
+      // Clear existing options except the placeholder
+      toolSel.innerHTML = '<option value="" selected disabled>Select a tool</option>';
+      const tools = cachedData.tools || [];
+      // Case-insensitive category matching
+      const filtered = activeCategory
+        ? tools.filter(t => String(t.category || '').toLowerCase() === activeCategory.toLowerCase())
+        : tools;
+      const byCat = {};
+      filtered.forEach(t => {
+        const cat = t.category || 'Tools';
+        (byCat[cat] = byCat[cat] || []).push(t);
+      });
+      Object.keys(byCat).sort().forEach(cat => {
+        const group = document.createElement('optgroup');
+        group.label = cat;
+        byCat[cat].forEach(t => {
+          const opt = document.createElement('option');
+          opt.value = t.item;
+          opt.textContent = t.item;
+          group.appendChild(opt);
+        });
+        toolSel.appendChild(group);
+      });
+    }
+
+    function renderCategoryBadge() {
+      const bar = document.getElementById('catBar');
+      if (activeCategory) {
+        bar.style.display = 'flex';
+        document.getElementById('catName').textContent = activeCategory;
+      } else {
+        bar.style.display = 'none';
+      }
+    }
+
+    function showCategoryPicker() {
+      if (!cachedData) return;
+      const cats = Array.from(new Set((cachedData.tools || []).map(t => t.category || 'Tools').filter(Boolean))).sort();
+      const overlay = document.getElementById('catOverlay');
+      const list = document.getElementById('catList');
+      list.innerHTML = '';
+      // "All categories" option
+      const allBtn = document.createElement('button');
+      allBtn.className = 'catBtn';
+      allBtn.textContent = 'All categories';
+      allBtn.addEventListener('click', () => { activeCategory=''; renderToolDropdown(); renderCategoryBadge(); overlay.style.display='none'; });
+      list.appendChild(allBtn);
+      cats.forEach(c => {
+        const b = document.createElement('button');
+        b.className = 'catBtn' + (c.toLowerCase() === activeCategory.toLowerCase() ? ' active' : '');
+        b.textContent = c;
+        b.addEventListener('click', () => { activeCategory=c; renderToolDropdown(); renderCategoryBadge(); overlay.style.display='none'; });
+        list.appendChild(b);
+      });
+      overlay.style.display = 'flex';
+    }
     loadDropdowns();
+    document.getElementById('catChange').addEventListener('click', showCategoryPicker);
 
     // ---- Fill these in once they exist ----
     const LAUNCHER_URL = "index.html";          // address of the Haggerty Shop Tools launcher page
