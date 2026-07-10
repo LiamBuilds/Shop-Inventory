@@ -235,21 +235,52 @@
     let activeCategory = "";
 
     // -------- Data loading --------
+    const CACHE_KEY = 'haggerty_shop_lists_v1';
+    const CACHE_MINUTES = 5;
+
+    function readCache() {
+      try {
+        const raw = sessionStorage.getItem(CACHE_KEY);
+        if (!raw) return null;
+        const obj = JSON.parse(raw);
+        const ageMs = Date.now() - (obj.savedAt || 0);
+        if (ageMs > CACHE_MINUTES * 60 * 1000) return null;
+        return obj.data;
+      } catch(e) { return null; }
+    }
+    function writeCache(data) {
+      try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ savedAt: Date.now(), data })); } catch(e) {}
+    }
+
+    function fillDropdownsFromData(data) {
+      cachedData = data;
+      const nameSel = document.getElementById('name');
+      const namePh = document.getElementById('namePlaceholder');
+      if (namePh) namePh.remove();
+      // Clear any existing name options (except the placeholder-free default)
+      Array.from(nameSel.querySelectorAll('option')).forEach(o => { if (!o.disabled) o.remove(); });
+      (data.people || []).forEach(p => {
+        const opt=document.createElement('option'); opt.value=p.name; opt.textContent=p.name;
+        nameSel.appendChild(opt);
+      });
+      renderToolDropdown();
+    }
+
     async function loadData() {
+      // Instant fill from cache if available (5-minute freshness window)
+      const cached = readCache();
+      if (cached) {
+        fillDropdownsFromData(cached);
+      }
+      // Always fetch fresh in the background so the sheet stays live
       try {
         const res = await fetch(GET_LISTS_URL, { cache:'no-store' });
         const data = await res.json();
-        cachedData = data;
-
-        const nameSel = document.getElementById('name');
-        const namePh = document.getElementById('namePlaceholder');
-        if (namePh) namePh.remove();
-        (data.people || []).forEach(p => {
-          const opt=document.createElement('option'); opt.value=p.name; opt.textContent=p.name;
-          nameSel.appendChild(opt);
-        });
-        renderToolDropdown();
-      } catch(err) { toast('Could not load list — refresh'); }
+        writeCache(data);
+        fillDropdownsFromData(data);
+      } catch(err) {
+        if (!cached) toast('Could not load list — refresh');
+      }
     }
 
     function renderToolDropdown() {
