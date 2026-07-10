@@ -126,22 +126,48 @@
       return Math.round((dt - today) / 86400000);
     };
 
-    // Load people into name dropdown
+    // 5-minute cache — reused across checkout and return pages
+    const CACHE_KEY = 'haggerty_shop_lists_v1';
+    const CACHE_MINUTES = 5;
+    function readCache(){
+      try{
+        const raw = sessionStorage.getItem(CACHE_KEY);
+        if(!raw) return null;
+        const obj = JSON.parse(raw);
+        if(Date.now() - (obj.savedAt||0) > CACHE_MINUTES*60*1000) return null;
+        return obj.data;
+      } catch(e){ return null; }
+    }
+    function writeCache(data){
+      try{ sessionStorage.setItem(CACHE_KEY, JSON.stringify({savedAt: Date.now(), data})); } catch(e){}
+    }
+
+    function fillNames(data){
+      const sel = document.getElementById('name');
+      const ph = document.getElementById('namePlaceholder');
+      if(ph) ph.textContent = 'Select your name';
+      // Clear any names already added
+      Array.from(sel.querySelectorAll('option')).forEach(o => { if(!o.disabled) o.remove(); });
+      (data.people || []).forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.name;
+        opt.textContent = p.name;
+        sel.appendChild(opt);
+      });
+    }
+
     async function loadPeople(){
+      // Instant fill from cache if available
+      const cached = readCache();
+      if(cached) fillNames(cached);
+      // Fetch fresh in background so data stays live
       try{
         const res = await fetch(GET_LISTS_URL, {cache:'no-store'});
         const data = await res.json();
-        const sel = document.getElementById('name');
-        const ph = document.getElementById('namePlaceholder');
-        ph.textContent = 'Select your name';
-        (data.people || []).forEach(p => {
-          const opt = document.createElement('option');
-          opt.value = p.name;
-          opt.textContent = p.name;
-          sel.appendChild(opt);
-        });
+        writeCache(data);
+        fillNames(data);
       } catch(e){
-        toast('Could not load names');
+        if(!cached) toast('Could not load names');
       }
     }
     loadPeople();
