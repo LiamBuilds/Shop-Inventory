@@ -13,7 +13,8 @@
   :root{
     --bg:#232323; --card:#2b2b2b; --line:#3a3a3a; --field:#2b2b2b;
     --orange:#F68922; --orange-press:#d9760f;
-    --ink:#1b1b1b; --paper:#f4f4f2; --muted:#9a9a9a; --gray:#4D4D4D; --green:#3fb27f;
+    --ink:#1b1b1b; --paper:#f4f4f2; --muted:#9a9a9a; --gray:#4D4D4D;
+    --green:#3fb27f; --green-press:#349d6e;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{margin:0;height:100%;}
@@ -26,30 +27,70 @@
   .back{appearance:none; background:none; border:0; padding:8px; margin:-8px 0 -8px -8px; cursor:pointer; color:var(--paper); text-decoration:none; display:flex;}
   .mark{height:34px; width:auto;}
   .htitle{font-family:"Arial Narrow",Arial,sans-serif; font-weight:800; letter-spacing:.14em; text-transform:uppercase; font-size:17px;}
-
   .rule{height:6px; margin:0 0 26px; border-radius:4px;
     background:repeating-linear-gradient(135deg,var(--orange) 0 14px,#2b2b2b 14px 26px);}
 
   .lead{font-family:Georgia,serif; font-size:21px; margin:0 0 22px;}
+  .sub{color:var(--muted); font-size:14px; margin:-16px 0 22px;}
+
+  /* Scan screen */
+  .scanArea{display:flex; flex-direction:column; align-items:center; gap:20px; flex:1;}
+  .scanFrame{width:100%; aspect-ratio:1; max-width:340px; border-radius:20px; overflow:hidden; background:#000; position:relative; border:2px solid var(--line);}
+  #scanVideo{width:100%; height:100%; object-fit:cover; display:block;}
+  .scanReticle{position:absolute; inset:14%; border:3px solid var(--orange); border-radius:14px; pointer-events:none;
+    box-shadow:0 0 0 9999px rgba(0,0,0,.35);}
+  .scanReticle::before, .scanReticle::after{content:""; position:absolute; width:24px; height:24px; border-color:var(--orange); border-style:solid; border-width:0;}
+  .scanReticle::before{top:-3px; left:-3px; border-top-width:6px; border-left-width:6px; border-top-left-radius:14px;}
+  .scanReticle::after{bottom:-3px; right:-3px; border-bottom-width:6px; border-right-width:6px; border-bottom-right-radius:14px;}
+  .scanHint{color:var(--muted); font-size:14px; text-align:center; padding:0 12px;}
+  .scanHint b{color:var(--paper); font-weight:600;}
+  .scanFallback{appearance:none; background:transparent; border:0; color:var(--orange); font-size:14px; font-family:inherit;
+    cursor:pointer; padding:8px; text-decoration:underline; margin-top:4px;}
+
+  .permBox{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px; text-align:center;}
+  .permBox h3{margin:0 0 8px; font-family:Georgia,serif; font-size:19px; color:var(--paper);}
+  .permBox p{margin:0 0 16px; color:var(--muted); font-size:14px; line-height:1.45;}
+  .permBox .btn{width:100%; padding:14px; border-radius:12px; background:var(--orange); color:var(--ink); border:0;
+    font-size:16px; font-weight:700; font-family:inherit; cursor:pointer;}
+
+  /* Form screen */
+  .catBadge{display:flex; align-items:center; justify-content:space-between; gap:12px;
+    background:rgba(246,137,34,.10); border:1px solid rgba(246,137,34,.35); border-radius:12px;
+    padding:12px 14px; margin-bottom:24px;}
+  .catInfo{display:flex; flex-direction:column; gap:2px; min-width:0;}
+  .catLabel{font-size:11px; font-weight:700; letter-spacing:.08em; color:var(--orange);}
+  .catValue{font-size:16px; font-weight:600; color:var(--paper); word-wrap:break-word;}
+  .catChange{appearance:none; background:transparent; border:1.5px solid var(--gray); color:var(--paper);
+    padding:8px 14px; border-radius:9px; font-size:13px; font-weight:600; font-family:inherit; cursor:pointer; flex-shrink:0;}
+
   .field{margin-bottom:20px;}
   label{display:block; font-size:13px; font-weight:600; letter-spacing:.02em; color:var(--muted); text-transform:uppercase; margin-bottom:8px;}
-  label .opt{text-transform:none; font-weight:500; color:#777;}
   select,input{width:100%; appearance:none; background:var(--field); color:var(--paper);
     border:1.5px solid var(--line); border-radius:12px; padding:16px 15px; font-size:17px; font-family:inherit;}
   select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%239a9a9a' stroke-width='2'><path d='M5 8l5 5 5-5'/></svg>");
     background-repeat:no-repeat; background-position:right 14px center; padding-right:42px;}
-  select:focus,input:focus{outline:none; border-color:var(--orange);}
-  input::placeholder{color:#6f6f6f;}
+  select:focus, input:focus{outline:none; border-color:var(--orange);}
 
   .submit{appearance:none; border:0; border-radius:16px; padding:22px; font-size:19px; font-weight:700; font-family:inherit;
     background:var(--orange); color:var(--ink); cursor:pointer; width:100%; margin-top:6px; transition:transform .06s, background .15s;}
   .submit:active{transform:scale(.985); background:var(--orange-press);}
+  .submit:disabled{opacity:.7; cursor:default;}
 
-  .toast{position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(20px);
-    background:#b3402e; color:#fff; font-weight:700; padding:12px 18px; border-radius:12px; opacity:0; pointer-events:none; transition:.25s; font-size:14px;}
-  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  /* Manual category picker overlay */
+  .catOverlay{position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:50;
+    display:none; align-items:flex-end; justify-content:center; padding:0;}
+  .catOverlay.show{display:flex;}
+  .catSheet{background:var(--bg); width:100%; max-width:460px; border-radius:20px 20px 0 0;
+    padding:22px 20px calc(24px + env(safe-area-inset-bottom)); max-height:80vh; overflow-y:auto;}
+  .catSheetTop{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
+  .catSheetTitle{font-family:Georgia,serif; font-size:20px; color:var(--paper);}
+  .catSheetClose{appearance:none; background:transparent; border:0; color:var(--muted); cursor:pointer; padding:4px;}
+  .catList{display:flex; flex-direction:column; gap:8px;}
+  .catBtn{appearance:none; background:var(--card); color:var(--paper); border:1.5px solid var(--line);
+    border-radius:12px; padding:16px; font-size:16px; font-family:inherit; text-align:left; cursor:pointer;}
+  .catBtn.active{border-color:var(--orange); background:rgba(246,137,34,.10);}
 
-  /* confirmation screen */
+  /* Confirmation screen */
   .done{display:none; flex-direction:column; align-items:center; text-align:center; flex:1; justify-content:center; padding:20px 0;}
   .done.show{display:flex;}
   .check{width:84px; height:84px; border-radius:50%; background:rgba(63,178,127,.14); display:flex; align-items:center; justify-content:center; margin-bottom:22px;}
@@ -62,50 +103,48 @@
   .solid{appearance:none; border:0; background:var(--orange); color:var(--ink);
     border-radius:14px; padding:18px; font-size:17px; font-weight:700; font-family:inherit; cursor:pointer; text-decoration:none; text-align:center;}
 
-  .catBar{display:flex; align-items:center; justify-content:space-between; gap:12px;
-    background:rgba(246,137,34,.10); border:1px solid rgba(246,137,34,.35); border-radius:12px;
-    padding:12px 14px; margin-bottom:20px;}
-  .catInfo{display:flex; flex-direction:column; gap:2px; min-width:0;}
-  .catLabel{font-size:11px; font-weight:700; letter-spacing:.08em; color:var(--orange);}
-  .catValue{font-size:16px; font-weight:600; color:var(--paper); word-wrap:break-word;}
-  .catChange{appearance:none; background:transparent; border:1.5px solid var(--gray); color:var(--paper);
-    padding:8px 14px; border-radius:9px; font-size:13px; font-weight:600; font-family:inherit;
-    cursor:pointer; flex-shrink:0;}
-  .catChange:active{background:var(--card);}
-
-  .catOverlay{position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:50;
-    align-items:flex-end; justify-content:center; padding:0;}
-  .catSheet{background:var(--bg); width:100%; max-width:460px; border-radius:20px 20px 0 0;
-    padding:22px 20px calc(24px + env(safe-area-inset-bottom)); max-height:80vh; overflow-y:auto;}
-  .catSheetTop{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
-  .catSheetTitle{font-family:Georgia,serif; font-size:20px; color:var(--paper);}
-  .catSheetClose{appearance:none; background:transparent; border:0; color:var(--muted); cursor:pointer; padding:4px;}
-  .catList{display:flex; flex-direction:column; gap:8px;}
-  .catBtn{appearance:none; background:var(--card); color:var(--paper); border:1.5px solid var(--line);
-    border-radius:12px; padding:16px; font-size:16px; font-family:inherit; text-align:left; cursor:pointer;
-    transition:background .12s;}
-  .catBtn:active{background:var(--line);}
-  .catBtn.active{border-color:var(--orange); background:rgba(246,137,34,.10);}
+  .toast{position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(20px);
+    background:var(--orange); color:var(--ink); font-weight:700; padding:12px 18px; border-radius:12px;
+    opacity:0; pointer-events:none; transition:.25s; font-size:14px; max-width:90%; text-align:center;}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
 </style>
 </head>
 <body>
   <main class="wrap">
-    <!-- FORM SCREEN -->
-    <div id="formScreen" style="display:flex; flex-direction:column; flex:1;">
-      <div class="top">
-        <a class="back" id="backLink" href="#" aria-label="Back">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-        </a>
-        <img class="mark" src="data:image/png;base64,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" alt="Haggerty">
-        <span class="htitle">Check Out</span>
+    <div class="top">
+      <a class="back" id="backLink" href="index.html" aria-label="Back">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </a>
+      <img class="mark" src="data:image/png;base64,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" alt="Haggerty">
+      <span class="htitle">Check Out</span>
+    </div>
+    <div class="rule"></div>
+
+    <!-- SCAN SCREEN -->
+    <div id="scanScreen">
+      <p class="lead">Scan the section QR</p>
+      <p class="sub">Point your camera at the QR code on the shelf.</p>
+
+      <div class="scanArea">
+        <div id="scanPermPrompt" class="permBox" style="display:none;">
+          <h3>Camera needed</h3>
+          <p>Allow camera access to scan section codes. You can also pick a section manually.</p>
+          <button class="btn" id="permBtn">Enable camera</button>
+        </div>
+        <div id="scanFrameWrap" class="scanFrame" style="display:none;">
+          <video id="scanVideo" playsinline muted autoplay></video>
+          <div class="scanReticle"></div>
+        </div>
+        <div id="scanHint" class="scanHint" style="display:none;">Line up the code inside the box</div>
+        <button type="button" class="scanFallback" id="manualPick">Or pick a section manually</button>
       </div>
-      <div class="rule"></div>
+    </div>
 
-      <p class="lead">Grab a tool</p>
-
-      <div class="catBar" id="catBar" style="display:none;">
+    <!-- FORM SCREEN -->
+    <div id="formScreen" style="display:none; flex-direction:column; flex:1;">
+      <div class="catBadge">
         <div class="catInfo">
-          <span class="catLabel">CATEGORY</span>
+          <span class="catLabel">SECTION</span>
           <span class="catValue" id="catName"></span>
         </div>
         <button type="button" class="catChange" id="catChange">Change</button>
@@ -114,21 +153,19 @@
       <div class="field">
         <label for="name">Your name</label>
         <select id="name">
-          <option value="" selected disabled>Select your name</option>
-        <option value="" disabled id="namePlaceholder">Loading…</option>
-</select>
+          <option value="" selected disabled id="namePlaceholder">Loading…</option>
+        </select>
       </div>
 
       <div class="field">
         <label for="tool">Which tool</label>
         <select id="tool">
-          <option value="" selected disabled>Select a tool</option>
-        <option value="" disabled id="toolPlaceholder">Loading…</option>
-</select>
+          <option value="" selected disabled id="toolPlaceholder">Loading…</option>
+        </select>
       </div>
 
       <div class="field">
-        <label for="dest">Where's it going <span class="opt">(optional)</span></label>
+        <label for="dest">Where's it going <span style="text-transform:none; font-weight:400; color:#777;">(optional)</span></label>
         <input id="dest" type="text" placeholder="Job site or yard" autocomplete="off">
       </div>
 
@@ -156,15 +193,17 @@
       <p class="meta" id="doneMeta"></p>
       <div class="acts">
         <button class="solid" id="another">Check out another</button>
-        <a class="ghost" id="doneHome" href="#">Done</a>
+        <a class="ghost" id="doneHome" href="index.html">Done</a>
       </div>
     </div>
   </main>
-  <div class="catOverlay" id="catOverlay" style="display:none;" onclick="if(event.target===this)this.style.display='none';">
+
+  <!-- Category picker overlay -->
+  <div class="catOverlay" id="catOverlay">
     <div class="catSheet">
       <div class="catSheetTop">
-        <div class="catSheetTitle">Pick a category</div>
-        <button class="catSheetClose" onclick="document.getElementById('catOverlay').style.display='none';" aria-label="Close">
+        <div class="catSheetTitle">Pick a section</div>
+        <button class="catSheetClose" onclick="document.getElementById('catOverlay').classList.remove('show');" aria-label="Close">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>
@@ -172,160 +211,218 @@
     </div>
   </div>
 
-
   <div class="toast" id="toast"></div>
 
+  <!-- QR scanner library (jsQR - lightweight, no build step needed) -->
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <script>
-    // ---- Dropdown data feed (live from Excel via n8n) ----
-    const GET_LISTS_URL = "https://haggertybuilds.app.n8n.cloud/webhook/shop-lists";
+    // ---- Webhooks ----
+    const GET_LISTS_URL    = "https://haggertybuilds.app.n8n.cloud/webhook/shop-lists";
+    const CHECKOUT_WEBHOOK = "https://haggertybuilds.app.n8n.cloud/webhook/record-checkout";
+    // ------------------
 
-    // Cache the fetched data for category switching
-    let cachedData = null;
-    // Get category filter from URL, e.g. ?category=Generators
-    function getCategoryFromURL() {
-      const p = new URLSearchParams(window.location.search);
-      return p.get('category') || '';
+    // Known section names (in case the tools API doesn't have them yet)
+    const KNOWN_SECTIONS = ["Equipment","Ladders","Tools","Cleaning","Landscaping","Large Grey Bins","Pallets"];
+
+    let t;
+    function toast(m){
+      const el=document.getElementById('toast'); el.textContent=m; el.classList.add('show');
+      clearTimeout(t); t=setTimeout(()=>el.classList.remove('show'),1800);
     }
-    let activeCategory = getCategoryFromURL();
+    const fmt = d => d.toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric'});
 
-    async function loadDropdowns() {
-      const nameSel = document.getElementById('name');
+    let cachedData = null;
+    let activeCategory = "";
+
+    // -------- Data loading --------
+    async function loadData() {
       try {
-        const res = await fetch(GET_LISTS_URL, { cache: 'no-store' });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const res = await fetch(GET_LISTS_URL, { cache:'no-store' });
         const data = await res.json();
         cachedData = data;
 
-        // People dropdown
+        const nameSel = document.getElementById('name');
         const namePh = document.getElementById('namePlaceholder');
         if (namePh) namePh.remove();
         (data.people || []).forEach(p => {
-          const opt = document.createElement('option');
-          opt.value = p.name;
-          opt.textContent = p.name;
+          const opt=document.createElement('option'); opt.value=p.name; opt.textContent=p.name;
           nameSel.appendChild(opt);
         });
-
         renderToolDropdown();
-        renderCategoryBadge();
-      } catch (err) {
-        console.error('Could not load lists:', err);
-        toast('Could not load list — refresh and try again');
-      }
+      } catch(err) { toast('Could not load list — refresh'); }
     }
 
     function renderToolDropdown() {
-      if (!cachedData) return;
       const toolSel = document.getElementById('tool');
-      // Clear existing options except the placeholder
+      const toolPh = document.getElementById('toolPlaceholder');
+      if (toolPh) toolPh.remove();
       toolSel.innerHTML = '<option value="" selected disabled>Select a tool</option>';
-      const tools = cachedData.tools || [];
-      // Case-insensitive category matching
-      const filtered = activeCategory
-        ? tools.filter(t => String(t.category || '').toLowerCase() === activeCategory.toLowerCase())
-        : tools;
-      const byCat = {};
-      filtered.forEach(t => {
-        const cat = t.category || 'Tools';
-        (byCat[cat] = byCat[cat] || []).push(t);
-      });
-      Object.keys(byCat).sort().forEach(cat => {
-        const group = document.createElement('optgroup');
-        group.label = cat;
-        byCat[cat].forEach(t => {
-          const opt = document.createElement('option');
-          opt.value = t.item;
-          opt.textContent = t.item;
-          group.appendChild(opt);
-        });
-        toolSel.appendChild(group);
-      });
-    }
-
-    function renderCategoryBadge() {
-      const bar = document.getElementById('catBar');
-      if (activeCategory) {
-        bar.style.display = 'flex';
-        document.getElementById('catName').textContent = activeCategory;
-      } else {
-        bar.style.display = 'none';
-      }
-    }
-
-    function showCategoryPicker() {
       if (!cachedData) return;
-      const cats = Array.from(new Set((cachedData.tools || []).map(t => t.category || 'Tools').filter(Boolean))).sort();
+      const tools = cachedData.tools || [];
+      const filtered = activeCategory
+        ? tools.filter(t => String(t.category||'').toLowerCase() === activeCategory.toLowerCase())
+        : tools;
+      if (filtered.length === 0) {
+        const opt=document.createElement('option'); opt.disabled=true;
+        opt.textContent = activeCategory ? 'No tools in this section yet' : 'No tools available';
+        toolSel.appendChild(opt);
+        return;
+      }
+      filtered.forEach(t => {
+        const opt=document.createElement('option'); opt.value=t.item; opt.textContent=t.item;
+        toolSel.appendChild(opt);
+      });
+    }
+
+    // -------- Screen management --------
+    function goToForm(section){
+      activeCategory = section;
+      document.getElementById('catName').textContent = section;
+      document.getElementById('scanScreen').style.display = 'none';
+      document.getElementById('formScreen').style.display = 'flex';
+      stopScanner();
+      renderToolDropdown();
+    }
+
+    function goToScan(){
+      document.getElementById('formScreen').style.display = 'none';
+      document.getElementById('doneScreen').classList.remove('show');
+      document.getElementById('scanScreen').style.display = 'block';
+      startScanner();
+    }
+
+    // -------- Manual picker --------
+    function showManualPicker(){
       const overlay = document.getElementById('catOverlay');
       const list = document.getElementById('catList');
       list.innerHTML = '';
-      // "All categories" option
-      const allBtn = document.createElement('button');
-      allBtn.className = 'catBtn';
-      allBtn.textContent = 'All categories';
-      allBtn.addEventListener('click', () => { activeCategory=''; renderToolDropdown(); renderCategoryBadge(); overlay.style.display='none'; });
-      list.appendChild(allBtn);
-      cats.forEach(c => {
-        const b = document.createElement('button');
-        b.className = 'catBtn' + (c.toLowerCase() === activeCategory.toLowerCase() ? ' active' : '');
-        b.textContent = c;
-        b.addEventListener('click', () => { activeCategory=c; renderToolDropdown(); renderCategoryBadge(); overlay.style.display='none'; });
+      // Prefer sections found in loaded data; fall back to known sections
+      let sections = KNOWN_SECTIONS.slice();
+      if (cachedData && (cachedData.tools||[]).some(t => t.category)) {
+        sections = Array.from(new Set((cachedData.tools||[]).map(t => t.category).filter(Boolean))).sort();
+      }
+      sections.forEach(s => {
+        const b=document.createElement('button');
+        b.className = 'catBtn' + (s.toLowerCase()===activeCategory.toLowerCase()?' active':'');
+        b.textContent = s;
+        b.addEventListener('click', () => { overlay.classList.remove('show'); goToForm(s); });
         list.appendChild(b);
       });
-      overlay.style.display = 'flex';
+      overlay.classList.add('show');
     }
-    loadDropdowns();
-    document.getElementById('catChange').addEventListener('click', showCategoryPicker);
 
-    // ---- Fill these in once they exist ----
-    const LAUNCHER_URL = "index.html";          // address of the Haggerty Shop Tools launcher page
-    const CHECKOUT_WEBHOOK = "https://haggertybuilds.app.n8n.cloud/webhook/record-checkout";
-    // ----------------------------------------
+    // -------- QR Scanner --------
+    let stream = null;
+    let scannerRunning = false;
+    const video = document.getElementById('scanVideo');
 
-    if(LAUNCHER_URL){ document.getElementById('backLink').href=LAUNCHER_URL; document.getElementById('doneHome').href=LAUNCHER_URL; }
+    async function startScanner(){
+      const permPrompt = document.getElementById('scanPermPrompt');
+      const frameWrap = document.getElementById('scanFrameWrap');
+      const hint = document.getElementById('scanHint');
 
-    let t; function toast(m){ const e=document.getElementById('toast'); e.textContent=m; e.classList.add('show'); clearTimeout(t); t=setTimeout(()=>e.classList.remove('show'),1800); }
-    const fmt = d => d.toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric'});
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' },
+          audio: false
+        });
+        video.srcObject = stream;
+        await video.play();
+        permPrompt.style.display = 'none';
+        frameWrap.style.display = 'block';
+        hint.style.display = 'block';
+        scannerRunning = true;
+        requestAnimationFrame(scanTick);
+      } catch(err) {
+        // Camera denied or unavailable
+        permPrompt.style.display = 'block';
+        frameWrap.style.display = 'none';
+        hint.style.display = 'none';
+      }
+    }
 
+    function stopScanner(){
+      scannerRunning = false;
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
+    }
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    function scanTick(){
+      if (!scannerRunning) return;
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        try {
+          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts:'dontInvert' });
+          if (code && code.data) {
+            let section = code.data.trim();
+            // If the QR encoded a URL, extract just the section piece
+            const m = section.match(/[?&]category=([^&]+)/i);
+            if (m) section = decodeURIComponent(m[1]);
+            // Sanity-check the value; if it doesn't look like a section, ignore
+            if (section && section.length < 60) {
+              toast('Scanned: ' + section);
+              setTimeout(() => goToForm(section), 300);
+              return;
+            }
+          }
+        } catch(e) { /* keep trying */ }
+      }
+      requestAnimationFrame(scanTick);
+    }
+
+    // -------- Wiring --------
+    document.getElementById('manualPick').addEventListener('click', showManualPicker);
+    document.getElementById('permBtn').addEventListener('click', startScanner);
+    document.getElementById('catChange').addEventListener('click', showManualPicker);
+    document.getElementById('catOverlay').addEventListener('click', (e) => {
+      if (e.target.id === 'catOverlay') e.currentTarget.classList.remove('show');
+    });
+
+    // Submit
     let submitting = false;
     document.getElementById('submit').addEventListener('click', async () => {
-      if(submitting) return;                                             // ignore rapid double-taps
+      if (submitting) return;
       const btn = document.getElementById('submit');
-      const name=document.getElementById('name').value;
-      const tool=document.getElementById('tool').value;
-      const dest=document.getElementById('dest').value.trim();
-      const days=parseInt(document.getElementById('dur').value,10);
+      const name = document.getElementById('name').value;
+      const tool = document.getElementById('tool').value;
+      const dest = document.getElementById('dest').value.trim();
+      const days = parseInt(document.getElementById('dur').value,10);
       if(!name){ toast("Pick your name"); return; }
       if(!tool){ toast("Pick a tool"); return; }
-      submitting = true;
-      btn.disabled = true;
-      btn.textContent = "Checking out…";
-      const due=new Date(); due.setDate(due.getDate()+days);
-      const payload={ person:name, tool, destination:dest, dueDate:due.toISOString().slice(0,10), checkedOutAt:new Date().toISOString() };
-
-      if(CHECKOUT_WEBHOOK){
-        try{ await fetch(CHECKOUT_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); }
-        catch(e){ toast("No signal, try again"); submitting=false; btn.disabled=false; btn.textContent="Check Out Tool"; return; }
+      submitting = true; btn.disabled = true; btn.textContent = "Checking out…";
+      const due = new Date(); due.setDate(due.getDate()+days);
+      const payload = { person:name, tool, destination:dest, dueDate:due.toISOString().slice(0,10), checkedOutAt:new Date().toISOString(), section:activeCategory };
+      if (CHECKOUT_WEBHOOK) {
+        try { await fetch(CHECKOUT_WEBHOOK, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) }); }
+        catch(e) { toast("No signal, try again"); submitting=false; btn.disabled=false; btn.textContent="Check Out Tool"; return; }
       }
-
       document.getElementById('doneLine').innerHTML = '<b>'+tool+'</b> is now out to '+name+'.';
       document.getElementById('doneMeta').textContent = (days===0?'Due back today':'Due back '+fmt(due)) + (dest?' \u00b7 '+dest:'');
-      document.getElementById('formScreen').style.display='none';
+      document.getElementById('formScreen').style.display = 'none';
       document.getElementById('doneScreen').classList.add('show');
-      // Reset state for next checkout (in case user taps "Check out another")
-      submitting = false;
-      btn.disabled = false;
-      btn.textContent = "Check Out Tool";
+      submitting = false; btn.disabled = false; btn.textContent = "Check Out Tool";
     });
 
     document.getElementById('another').addEventListener('click', () => {
-      document.getElementById('name').selectedIndex=0;
-      document.getElementById('tool').selectedIndex=0;
-      document.getElementById('dest').value='';
-      document.getElementById('dur').value='3';
-      document.getElementById('doneScreen').classList.remove('show');
-      document.getElementById('formScreen').style.display='flex';
-      window.scrollTo(0,0);
+      document.getElementById('name').selectedIndex = 0;
+      document.getElementById('tool').selectedIndex = 0;
+      document.getElementById('dest').value = '';
+      document.getElementById('dur').value = '3';
+      activeCategory = '';
+      goToScan();
     });
+
+    // Start
+    loadData();
+    startScanner();
   </script>
 </body>
 </html>
