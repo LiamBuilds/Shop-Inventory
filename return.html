@@ -239,7 +239,10 @@
         const btn = card.querySelector('.ret');
         btn.addEventListener('click', async () => {
           if(btn.disabled) return;
-          btn.disabled = true;
+          if(window.__returning){ toast('Please wait…'); return; }
+          window.__returning = true;
+          // Disable ALL return buttons while this one processes
+          document.querySelectorAll('.ret').forEach(b => { b.disabled = true; });
           btn.textContent = 'Returning…';
           try{
             const res = await fetch(RETURN_URL, {
@@ -248,6 +251,8 @@
               body: JSON.stringify({checkoutId: it.checkoutId})
             });
             if(!res.ok) throw new Error('bad response');
+            // Add a small delay so Excel's write fully commits before the next return can fire
+            await new Promise(r => setTimeout(r, 1200));
             toast(it.item + ' returned', true);
             card.style.transition = 'opacity .3s, transform .3s';
             card.style.opacity = '0';
@@ -260,11 +265,15 @@
                 emptyState.classList.add('success');
                 emptyState.textContent = "All caught up. Nothing else to return.";
               }
+              // Release the lock and re-enable the other Return buttons
+              window.__returning = false;
+              document.querySelectorAll('.ret').forEach(b => { b.disabled = false; });
             }, 320);
           } catch(e){
             toast('Could not return, try again');
-            btn.disabled = false;
             btn.textContent = 'Return';
+            window.__returning = false;
+            document.querySelectorAll('.ret').forEach(b => { b.disabled = false; });
           }
         });
 
