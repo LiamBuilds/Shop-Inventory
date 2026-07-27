@@ -103,6 +103,17 @@
   .solid{appearance:none; border:0; background:var(--orange); color:var(--ink);
     border-radius:14px; padding:18px; font-size:17px; font-weight:700; font-family:inherit; cursor:pointer; text-decoration:none; text-align:center;}
 
+  .toolResults{max-height:280px; overflow-y:auto; background:var(--field); border:1.5px solid var(--line); border-top:none; border-radius:0 0 12px 12px; margin-top:-1px;}
+  .toolResults .row{padding:14px 15px; border-bottom:1px solid var(--line); font-size:17px; cursor:pointer; color:var(--paper);}
+  .toolResults .row:last-child{border-bottom:none;}
+  .toolResults .row:hover, .toolResults .row.hilite{background:rgba(246,137,34,.14); color:var(--paper);}
+  .toolResults .empty{padding:14px 15px; color:var(--muted); font-style:italic; font-size:15px;}
+  .toolSelected{display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:rgba(246,137,34,.10); border:1.5px solid rgba(246,137,34,.35); border-radius:12px;
+    padding:14px 15px; margin-top:8px;}
+  .toolSelected span{font-size:17px; font-weight:600;}
+  .toolSelected button{appearance:none; background:transparent; border:0; color:var(--muted); font-size:26px; cursor:pointer; padding:0 4px; line-height:1;}
+  #toolSearch:focus{border-radius:12px 12px 0 0;}
   .toast{position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(20px);
     background:var(--orange); color:var(--ink); font-weight:700; padding:12px 18px; border-radius:12px;
     opacity:0; pointer-events:none; transition:.25s; font-size:14px; max-width:90%; text-align:center;}
@@ -158,10 +169,14 @@
       </div>
 
       <div class="field">
-        <label for="tool">Which tool</label>
-        <select id="tool">
-          <option value="" selected disabled id="toolPlaceholder">Loading…</option>
-        </select>
+        <label for="toolSearch">Which tool</label>
+        <input id="toolSearch" type="text" placeholder="Search or tap to browse" autocomplete="off" spellcheck="false">
+        <div id="toolResults" class="toolResults" style="display:none;"></div>
+        <input type="hidden" id="tool" value="">
+        <div id="toolSelected" class="toolSelected" style="display:none;">
+          <span id="toolSelectedName"></span>
+          <button type="button" id="toolClear" aria-label="Clear selection">&times;</button>
+        </div>
       </div>
 
       <div class="field">
@@ -283,26 +298,84 @@
       }
     }
 
+    let categoryTools = [];
     function renderToolDropdown() {
-      const toolSel = document.getElementById('tool');
-      const toolPh = document.getElementById('toolPlaceholder');
-      if (toolPh) toolPh.remove();
-      toolSel.innerHTML = '<option value="" selected disabled>Select a tool</option>';
+      categoryTools = [];
+      const searchInput = document.getElementById('toolSearch');
+      const results = document.getElementById('toolResults');
+      const selectedBox = document.getElementById('toolSelected');
+      const hiddenInput = document.getElementById('tool');
+
       if (!cachedData) return;
       const tools = cachedData.tools || [];
-      const filtered = activeCategory
+      categoryTools = activeCategory
         ? tools.filter(t => String(t.category||'').toLowerCase() === activeCategory.toLowerCase())
         : tools;
-      if (filtered.length === 0) {
-        const opt=document.createElement('option'); opt.disabled=true;
-        opt.textContent = activeCategory ? 'No tools in this section yet' : 'No tools available';
-        toolSel.appendChild(opt);
-        return;
+
+      // Reset selection when category changes
+      hiddenInput.value = '';
+      selectedBox.style.display = 'none';
+      searchInput.style.display = 'block';
+      searchInput.value = '';
+      results.style.display = 'none';
+
+      if (categoryTools.length === 0) {
+        searchInput.placeholder = 'No tools in this section yet';
+        searchInput.disabled = true;
+      } else {
+        searchInput.placeholder = 'Search or tap to browse';
+        searchInput.disabled = false;
       }
-      filtered.forEach(t => {
-        const opt=document.createElement('option'); opt.value=t.item; opt.textContent=t.item;
-        toolSel.appendChild(opt);
-      });
+    }
+
+    function filterAndShowTools(query) {
+      const results = document.getElementById('toolResults');
+      results.innerHTML = '';
+      const q = query.trim().toLowerCase();
+      const matches = q === ''
+        ? categoryTools
+        : categoryTools.filter(t => t.item.toLowerCase().includes(q));
+      if (matches.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = 'No matches';
+        results.appendChild(empty);
+      } else {
+        matches.forEach((t, i) => {
+          const row = document.createElement('div');
+          row.className = 'row';
+          row.textContent = t.item;
+          row.dataset.value = t.item;
+          if (i === 0) row.classList.add('hilite');
+          row.addEventListener('click', () => selectTool(t.item));
+          results.appendChild(row);
+        });
+      }
+      results.style.display = 'block';
+    }
+
+    function selectTool(name) {
+      const searchInput = document.getElementById('toolSearch');
+      const results = document.getElementById('toolResults');
+      const selectedBox = document.getElementById('toolSelected');
+      const selectedName = document.getElementById('toolSelectedName');
+      const hiddenInput = document.getElementById('tool');
+      hiddenInput.value = name;
+      selectedName.textContent = name;
+      selectedBox.style.display = 'flex';
+      searchInput.style.display = 'none';
+      results.style.display = 'none';
+    }
+
+    function clearToolSelection() {
+      const searchInput = document.getElementById('toolSearch');
+      const selectedBox = document.getElementById('toolSelected');
+      const hiddenInput = document.getElementById('tool');
+      hiddenInput.value = '';
+      selectedBox.style.display = 'none';
+      searchInput.style.display = 'block';
+      searchInput.value = '';
+      searchInput.focus();
     }
 
     // -------- Screen management --------
@@ -413,6 +486,46 @@
     document.getElementById('manualPick').addEventListener('click', showManualPicker);
     document.getElementById('permBtn').addEventListener('click', startScanner);
     document.getElementById('catChange').addEventListener('click', showManualPicker);
+
+    // Tool search wiring
+    const toolSearchEl = document.getElementById('toolSearch');
+    toolSearchEl.addEventListener('focus', () => filterAndShowTools(toolSearchEl.value));
+    toolSearchEl.addEventListener('input', () => filterAndShowTools(toolSearchEl.value));
+    toolSearchEl.addEventListener('keydown', (e) => {
+      const results = document.getElementById('toolResults');
+      const rows = Array.from(results.querySelectorAll('.row'));
+      if (rows.length === 0) return;
+      const currentIdx = rows.findIndex(r => r.classList.contains('hilite'));
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const next = Math.min(currentIdx + 1, rows.length - 1);
+        rows.forEach(r => r.classList.remove('hilite'));
+        rows[next].classList.add('hilite');
+        rows[next].scrollIntoView({block:'nearest'});
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prev = Math.max(currentIdx - 1, 0);
+        rows.forEach(r => r.classList.remove('hilite'));
+        rows[prev].classList.add('hilite');
+        rows[prev].scrollIntoView({block:'nearest'});
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const active = rows.find(r => r.classList.contains('hilite')) || rows[0];
+        if (active) selectTool(active.dataset.value);
+      } else if (e.key === 'Escape') {
+        results.style.display = 'none';
+      }
+    });
+    // Close results when clicking outside
+    document.addEventListener('click', (e) => {
+      const wrap = document.getElementById('toolSearch');
+      const results = document.getElementById('toolResults');
+      if (!wrap || !results) return;
+      if (e.target !== wrap && !results.contains(e.target)) {
+        results.style.display = 'none';
+      }
+    });
+    document.getElementById('toolClear').addEventListener('click', clearToolSelection);
     document.getElementById('catOverlay').addEventListener('click', (e) => {
       if (e.target.id === 'catOverlay') e.currentTarget.classList.remove('show');
     });
