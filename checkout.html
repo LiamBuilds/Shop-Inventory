@@ -99,6 +99,9 @@
 
   /* Justification field */
   .justField{border:1.5px dashed rgba(246,137,34,.6);}
+  .justNotice{background:rgba(246,137,34,.10); border:1px solid rgba(246,137,34,.35); border-radius:10px;
+    padding:12px 14px; margin-bottom:12px; color:var(--paper); font-size:13px; line-height:1.4;}
+  .justNotice b{color:var(--orange);}
   .justHint{color:var(--muted); font-size:12px; margin-top:6px; line-height:1.4;}
 
   /* Manual category picker overlay */
@@ -232,6 +235,7 @@
       </div>
 
       <div class="field" id="justField" style="display:none;">
+        <div class="justNotice">This equipment requires <b>Alice\'s approval</b>. Explain why below and your request will be sent to her.</div>
         <label for="justification">Why do you need this? <span class="req">*</span></label>
         <textarea id="justification" class="justField" rows="3" placeholder="Be specific: reason, site, urgency..."></textarea>
         <div class="justHint">Alice will review this to decide whether to approve.</div>
@@ -292,19 +296,6 @@
         </button>
       </div>
       <div class="catList" id="catList"></div>
-    </div>
-  </div>
-
-  <!-- Mitigation approval warning -->
-  <div class="mitigWarn" id="mitigWarn">
-    <div class="box">
-      <div class="icon">&#9888;</div>
-      <h3>Approval required</h3>
-      <p id="mitigWarnText">This category requires Alice's approval. Continue to submit a request?</p>
-      <div class="buttons">
-        <button class="continue" id="mitigContinue">Continue with request</button>
-        <button class="cancel" id="mitigCancel">Cancel</button>
-      </div>
     </div>
   </div>
 
@@ -501,18 +492,7 @@
     }
 
     function goToForm(section){
-      // Check if this is a mitigation category that needs approval
-      if (isMitigationCategory(section)) {
-        pendingSection = section;
-        document.getElementById('mitigWarnText').textContent =
-          section + ' requires approval from Alice for unapproved users. If you\'re approved, checkout will proceed normally. Continue?';
-        document.getElementById('mitigWarn').classList.add('show');
-        return;
-      }
-      proceedToForm(section);
-    }
-
-    function proceedToForm(section){
+      // Go straight to form. Approval logic is applied AFTER the person picks their name.
       activeCategory = section;
       document.getElementById('catName').textContent = section;
       document.getElementById('scanScreen').style.display = 'none';
@@ -521,6 +501,8 @@
       renderToolDropdown();
       updateJustificationVisibility();
     }
+
+    function proceedToForm(section){ goToForm(section); }
 
     function updateJustificationVisibility(){
       // Show justification field if selected name is NOT mitigation-approved AND category is mitigation
@@ -644,19 +626,6 @@
     document.getElementById('manualPick').addEventListener('click', showManualPicker);
     document.getElementById('permBtn').addEventListener('click', startScanner);
     document.getElementById('catChange').addEventListener('click', showManualPicker);
-
-    // Mitigation warning modal buttons
-    document.getElementById('mitigContinue').addEventListener('click', () => {
-      document.getElementById('mitigWarn').classList.remove('show');
-      if (pendingSection) proceedToForm(pendingSection);
-      pendingSection = null;
-    });
-    document.getElementById('mitigCancel').addEventListener('click', () => {
-      document.getElementById('mitigWarn').classList.remove('show');
-      pendingSection = null;
-      // Go back to scanning
-      startScanner();
-    });
 
     // Update justification field visibility when name changes; also check for pending decisions
     document.getElementById('name').addEventListener('change', () => {
