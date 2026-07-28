@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NFC Tag · Haggerty</title>
+<meta name="theme-color" content="#232323">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="NFC">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
+<link rel="icon" type="image/png" href="data:image/png;base64,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">
+<style>
+  :root{
+    --bg:#232323; --card:#2b2b2b; --line:#3a3a3a; --field:#2b2b2b;
+    --orange:#F68922; --orange-press:#d9760f;
+    --ink:#1b1b1b; --paper:#f4f4f2; --muted:#9a9a9a; --gray:#4D4D4D;
+    --green:#3fb27f; --green-press:#349d6e;
+    --danger:#c0392b;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;}
+  body{background:var(--bg); color:var(--paper);
+    font-family:"Calibri","Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+    min-height:100dvh; padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);}
+  .wrap{max-width:460px; width:100%; margin:0 auto; padding:20px 22px 28px; display:flex; flex-direction:column; min-height:100dvh;}
+
+  .top{display:flex; align-items:center; gap:12px; margin-bottom:18px;}
+  .back{appearance:none; background:none; border:0; padding:8px; margin:-8px 0 -8px -8px; cursor:pointer; color:var(--paper); text-decoration:none; display:flex;}
+  .mark{height:34px; width:auto;}
+  .htitle{font-family:"Arial Narrow",Arial,sans-serif; font-weight:800; letter-spacing:.14em; text-transform:uppercase; font-size:17px;}
+  .rule{height:6px; margin:0 0 26px; border-radius:4px;
+    background:repeating-linear-gradient(135deg,var(--orange) 0 14px,#2b2b2b 14px 26px);}
+
+  .loading{text-align:center; padding:40px 20px; color:var(--muted);}
+
+  .statusCard{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin-bottom:22px;}
+  .statusCard .idBadge{display:inline-block; background:var(--orange); color:var(--ink); font-weight:700; font-size:13px; padding:4px 10px; border-radius:6px; letter-spacing:.04em;}
+  .statusCard h2{font-family:Georgia,serif; font-size:22px; margin:10px 0 4px; color:var(--paper);}
+  .statusCard .cat{color:var(--muted); font-size:13px; margin:0 0 14px;}
+  .statusCard .divider{height:1px; background:var(--line); margin:14px 0;}
+  .statusCard .field{display:flex; justify-content:space-between; padding:6px 0; font-size:15px;}
+  .statusCard .field .k{color:var(--muted);}
+  .statusCard .field .v{color:var(--paper); font-weight:600; text-align:right;}
+  .firstScan{background:rgba(246,137,34,.10); border-color:rgba(246,137,34,.45);}
+  .firstScan h2{color:var(--orange);}
+
+  .field-form{margin-bottom:20px;}
+  label{display:block; font-size:13px; font-weight:600; letter-spacing:.02em; color:var(--muted); text-transform:uppercase; margin-bottom:8px;}
+  select,input,textarea{width:100%; appearance:none; background:var(--field); color:var(--paper);
+    border:1.5px solid var(--line); border-radius:12px; padding:16px 15px; font-size:17px; font-family:inherit;}
+  textarea{resize:vertical; min-height:60px; font-size:15px;}
+  select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%239a9a9a' stroke-width='2'><path d='M5 8l5 5 5-5'/></svg>");
+    background-repeat:no-repeat; background-position:right 14px center; padding-right:42px;}
+  select:focus, input:focus, textarea:focus{outline:none; border-color:var(--orange);}
+
+  .req{color:var(--orange); font-weight:700; margin-left:2px;}
+
+  .checkbox{display:flex; align-items:center; gap:10px; padding:12px 14px; background:var(--card); border:1.5px solid var(--line); border-radius:12px; cursor:pointer; margin-bottom:20px;}
+  .checkbox input{width:20px; height:20px; accent-color:var(--orange); margin:0; padding:0; flex-shrink:0;}
+  .checkbox label{margin:0; text-transform:none; letter-spacing:normal; font-size:14px; color:var(--paper); font-weight:400; flex:1;}
+
+  .submit{appearance:none; border:0; border-radius:16px; padding:22px; font-size:19px; font-weight:700; font-family:inherit;
+    background:var(--orange); color:var(--ink); cursor:pointer; width:100%; margin-top:6px; transition:transform .06s, background .15s;}
+  .submit:active{transform:scale(.985); background:var(--orange-press);}
+  .submit:disabled{opacity:.7; cursor:default;}
+
+  .done{display:none; flex-direction:column; align-items:center; text-align:center; flex:1; justify-content:center; padding:20px 0;}
+  .done.show{display:flex;}
+  .check{width:84px; height:84px; border-radius:50%; background:rgba(63,178,127,.14); display:flex; align-items:center; justify-content:center; margin-bottom:22px;}
+  .done h2{font-family:Georgia,serif; font-size:26px; margin:0 0 10px;}
+  .done p{color:var(--paper); font-size:17px; margin:0 0 6px; line-height:1.45;}
+  .done .acts{display:flex; flex-direction:column; gap:12px; width:100%; margin-top:30px;}
+  .ghost{appearance:none; border:2px solid var(--gray); background:transparent; color:var(--paper);
+    border-radius:14px; padding:18px; font-size:17px; font-weight:600; font-family:inherit; cursor:pointer; text-decoration:none; text-align:center;}
+
+  .errBox{background:rgba(200,60,60,.14); border:1px solid rgba(200,60,60,.5); border-radius:12px; padding:16px; margin-bottom:16px; color:var(--paper); font-size:14px; display:none;}
+  .errBox.show{display:block;}
+
+  .toast{position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(20px);
+    background:var(--orange); color:var(--ink); font-weight:700; padding:12px 18px; border-radius:12px;
+    opacity:0; pointer-events:none; transition:.25s; font-size:14px; max-width:90%; text-align:center;}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="top">
+      <a class="back" href="index.html" aria-label="Back">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </a>
+      <img class="mark" src="data:image/png;base64,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" alt="Haggerty">
+      <span class="htitle">NFC Tag</span>
+    </div>
+    <div class="rule"></div>
+
+    <div id="loading" class="loading">Loading unit status...</div>
+
+    <div id="mainForm" style="display:none;">
+      <div class="statusCard" id="statusCard">
+        <span class="idBadge" id="idBadge">DH-000</span>
+        <h2 id="itemName">Loading...</h2>
+        <div class="cat" id="itemCat"></div>
+        <div class="divider"></div>
+        <div class="field"><span class="k">Currently at</span><span class="v" id="curLoc"></span></div>
+        <div class="field"><span class="k">Held by</span><span class="v" id="curHolder"></span></div>
+        <div class="field"><span class="k">Last action</span><span class="v" id="lastAction"></span></div>
+      </div>
+
+      <div class="errBox" id="errBox"></div>
+
+      <div class="field-form">
+        <label for="action">What are you doing?</label>
+        <select id="action">
+          <option value="" selected disabled>Choose action</option>
+          <option value="Load into van">Load into van</option>
+          <option value="Drop off at site">Drop off at site</option>
+          <option value="Loan to teammate">Loan to teammate</option>
+          <option value="Pick back up">Pick back up</option>
+          <option value="Return to shop">Return to shop</option>
+        </select>
+      </div>
+
+      <!-- Dynamic fields -->
+      <div class="field-form" id="siteField" style="display:none;">
+        <label for="site">Site / address <span class="req">*</span></label>
+        <input id="site" type="text" placeholder="e.g. Smith Residence, 1234 Main St" autocomplete="off">
+      </div>
+
+      <div class="field-form" id="recipientField" style="display:none;">
+        <label for="recipient">Who is receiving it? <span class="req">*</span></label>
+        <select id="recipient">
+          <option value="" selected disabled>Pick teammate</option>
+        </select>
+      </div>
+
+      <div class="checkbox" id="notifyBox" style="display:none;">
+        <input type="checkbox" id="notify" checked>
+        <label for="notify">Email the current holder about this transfer</label>
+      </div>
+
+      <div class="field-form" id="pickupField" style="display:none;">
+        <label for="pickup">Where are you taking it?</label>
+        <select id="pickup">
+          <option value="Van" selected>Back to van</option>
+          <option value="Shop">Back to shop</option>
+          <option value="__site">To a new site (type address)</option>
+        </select>
+        <input id="pickupSite" type="text" placeholder="Site / address" autocomplete="off" style="margin-top:10px; display:none;">
+      </div>
+
+      <div class="field-form">
+        <label for="notes">Notes <span style="text-transform:none; font-weight:400; color:#777;">(optional)</span></label>
+        <textarea id="notes" rows="2" placeholder="Optional details..." autocomplete="off"></textarea>
+      </div>
+
+      <button class="submit" id="submit">Record</button>
+    </div>
+
+    <div class="done" id="doneScreen">
+      <div class="check">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#3fb27f" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+      </div>
+      <h2>Recorded</h2>
+      <p id="doneLine"></p>
+      <div class="acts">
+        <a class="ghost" href="index.html">Back to home</a>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const NFC_STATUS_URL   = "https://haggertybuilds.app.n8n.cloud/webhook/nfc-status";
+    const NFC_TX_URL       = "https://haggertybuilds.app.n8n.cloud/webhook/nfc-transaction";
+
+    let currentState = null; // { itemId, item, category, currentHolder, currentLocation, currentLocationType, people }
+    let t;
+
+    function toast(m){ const el=document.getElementById('toast'); el.textContent=m; el.classList.add('show'); clearTimeout(t); t=setTimeout(()=>el.classList.remove('show'),1800); }
+
+    function getIdFromUrl(){
+      const params = new URLSearchParams(window.location.search);
+      return (params.get('id') || '').trim().toUpperCase();
+    }
+
+    async function loadStatus(){
+      const id = getIdFromUrl();
+      if (!id){
+        document.getElementById('loading').textContent = 'No ItemID in URL. This tag may not be programmed yet.';
+        return;
+      }
+      try{
+        const res = await fetch(NFC_STATUS_URL + '?id=' + encodeURIComponent(id), { cache:'no-store' });
+        const data = await res.json();
+        currentState = data;
+        renderStatus();
+      } catch(e){
+        document.getElementById('loading').textContent = 'Could not load status. Check your connection.';
+      }
+    }
+
+    function renderStatus(){
+      if (!currentState || !currentState.ok){
+        document.getElementById('loading').textContent = 'Unit not found in system.';
+        return;
+      }
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('mainForm').style.display = 'block';
+
+      document.getElementById('idBadge').textContent = currentState.itemId;
+      const card = document.getElementById('statusCard');
+
+      if (currentState.firstScan){
+        card.classList.add('firstScan');
+        document.getElementById('itemName').textContent = 'First scan of this tag';
+        document.getElementById('itemCat').textContent = 'No history yet. Assumed at Shop.';
+        document.getElementById('curLoc').textContent = 'Shop';
+        document.getElementById('curHolder').textContent = '(none)';
+        document.getElementById('lastAction').textContent = '(none)';
+      } else {
+        document.getElementById('itemName').textContent = currentState.item || currentState.itemId;
+        document.getElementById('itemCat').textContent = currentState.category || '';
+        document.getElementById('curLoc').textContent = currentState.currentLocation || '(unknown)';
+        document.getElementById('curHolder').textContent = currentState.currentHolder || '(none)';
+        document.getElementById('lastAction').textContent = currentState.lastAction || '(none)';
+      }
+
+      // Populate recipient dropdown from people list
+      const recSel = document.getElementById('recipient');
+      recSel.innerHTML = '<option value="" selected disabled>Pick teammate</option>';
+      (currentState.people || []).forEach(p => {
+        // Exclude the current holder from the recipient list
+        if (p.name && p.name.toLowerCase() !== (currentState.currentHolder || '').toLowerCase()){
+          const opt = document.createElement('option');
+          opt.value = p.name;
+          opt.textContent = p.name;
+          recSel.appendChild(opt);
+        }
+      });
+    }
+
+    // Action dropdown - show/hide relevant fields
+    document.getElementById('action').addEventListener('change', () => {
+      const action = document.getElementById('action').value;
+      const siteField = document.getElementById('siteField');
+      const recipientField = document.getElementById('recipientField');
+      const notifyBox = document.getElementById('notifyBox');
+      const pickupField = document.getElementById('pickupField');
+
+      // Reset all
+      siteField.style.display = 'none';
+      recipientField.style.display = 'none';
+      notifyBox.style.display = 'none';
+      pickupField.style.display = 'none';
+
+      if (action === 'Drop off at site') {
+        siteField.style.display = 'block';
+      } else if (action === 'Loan to teammate') {
+        recipientField.style.display = 'block';
+        notifyBox.style.display = 'flex';
+      } else if (action === 'Pick back up') {
+        pickupField.style.display = 'block';
+      }
+    });
+
+    // Pickup dropdown - show text input if "to a new site"
+    document.getElementById('pickup').addEventListener('change', () => {
+      const val = document.getElementById('pickup').value;
+      const siteInput = document.getElementById('pickupSite');
+      siteInput.style.display = val === '__site' ? 'block' : 'none';
+    });
+
+    // Submit
+    let submitting = false;
+    document.getElementById('submit').addEventListener('click', async () => {
+      if (submitting) return;
+      const action = document.getElementById('action').value;
+      const notes = document.getElementById('notes').value.trim();
+      const err = document.getElementById('errBox');
+      err.classList.remove('show');
+      if (!action){ toast('Pick an action'); return; }
+      if (!currentState || !currentState.ok){ toast('No unit data'); return; }
+
+      // Build the payload based on action
+      let from = currentState.currentLocation || 'Shop';
+      let to = '';
+      let heldBy = currentState.currentHolder || '';
+      let locationType = 'Shop';
+      let previousHolder = currentState.currentHolder || '';
+      let notify = false;
+
+      if (action === 'Load into van'){
+        to = 'Van';
+        locationType = 'Van';
+        // heldBy stays the same (or if first scan, no name — that's a UI issue but for now we default)
+      } else if (action === 'Drop off at site'){
+        const site = document.getElementById('site').value.trim();
+        if (!site){ toast('Enter the site'); document.getElementById('site').focus(); return; }
+        to = site;
+        locationType = 'Site';
+      } else if (action === 'Loan to teammate'){
+        const recipient = document.getElementById('recipient').value;
+        if (!recipient){ toast('Pick who is receiving it'); return; }
+        // "From" is previous holder, "To" is recipient
+        from = currentState.currentHolder || '';
+        to = recipient;
+        heldBy = recipient;
+        locationType = currentState.currentLocationType || 'Site';
+        notify = document.getElementById('notify').checked;
+      } else if (action === 'Pick back up'){
+        const pickup = document.getElementById('pickup').value;
+        if (pickup === '__site'){
+          const siteVal = document.getElementById('pickupSite').value.trim();
+          if (!siteVal){ toast('Enter the site'); document.getElementById('pickupSite').focus(); return; }
+          to = siteVal;
+          locationType = 'Site';
+        } else if (pickup === 'Shop'){
+          to = 'Shop';
+          locationType = 'Shop';
+        } else {
+          to = 'Van';
+          locationType = 'Van';
+        }
+      } else if (action === 'Return to shop'){
+        to = 'Shop';
+        locationType = 'Shop';
+        heldBy = ''; // nobody holds it once returned to shop
+      }
+
+      submitting = true;
+      const btn = document.getElementById('submit');
+      btn.disabled = true;
+      btn.textContent = 'Recording...';
+
+      const payload = {
+        itemId: currentState.itemId,
+        item: currentState.item || '',
+        category: currentState.category || '',
+        action: action,
+        from: from,
+        to: to,
+        heldBy: heldBy,
+        locationType: locationType,
+        notes: notes,
+        previousHolder: previousHolder,
+        notify: notify
+      };
+
+      try {
+        const res = await fetch(NFC_TX_URL, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!data.ok){
+          err.textContent = 'Something went wrong. Try again.';
+          err.classList.add('show');
+          btn.disabled = false;
+          btn.textContent = 'Record';
+          submitting = false;
+          return;
+        }
+        // Success
+        document.getElementById('doneLine').textContent = action + ' recorded for ' + (currentState.item || currentState.itemId) + '.';
+        document.getElementById('mainForm').style.display = 'none';
+        document.getElementById('doneScreen').classList.add('show');
+      } catch(e){
+        err.textContent = 'No signal. Try again.';
+        err.classList.add('show');
+        btn.disabled = false;
+        btn.textContent = 'Record';
+        submitting = false;
+      }
+    });
+
+    // Init
+    loadStatus();
+  </script>
+</body>
+</html>
