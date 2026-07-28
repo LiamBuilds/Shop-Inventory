@@ -76,6 +76,31 @@
   .submit:active{transform:scale(.985); background:var(--orange-press);}
   .submit:disabled{opacity:.7; cursor:default;}
 
+  /* Mitigation warning modal */
+  .mitigWarn{position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:80; display:none; align-items:center; justify-content:center; padding:20px;}
+  .mitigWarn.show{display:flex;}
+  .mitigWarn .box{background:var(--bg); border:1.5px solid rgba(246,137,34,.5); border-radius:16px; padding:24px; max-width:400px; width:100%; text-align:center;}
+  .mitigWarn .icon{font-size:36px; color:var(--orange); margin-bottom:10px;}
+  .mitigWarn h3{font-family:Georgia,serif; font-size:20px; margin:0 0 8px; color:var(--paper);}
+  .mitigWarn p{color:var(--muted); font-size:14px; margin:0 0 20px; line-height:1.5;}
+  .mitigWarn .buttons{display:flex; flex-direction:column; gap:10px;}
+  .mitigWarn button{appearance:none; border:0; border-radius:12px; padding:14px; font-size:15px; font-weight:600; font-family:inherit; cursor:pointer;}
+  .mitigWarn .continue{background:var(--orange); color:var(--ink);}
+  .mitigWarn .cancel{background:transparent; border:1.5px solid var(--gray); color:var(--paper);}
+
+  /* Decision banner - shown at top when Alice has decided */
+  .decisionBar{margin:0 0 20px; padding:14px 16px; border-radius:12px; display:none; align-items:flex-start; gap:12px;}
+  .decisionBar.show{display:flex;}
+  .decisionBar.approved{background:rgba(63,178,127,.14); border:1px solid rgba(63,178,127,.5);}
+  .decisionBar.denied{background:rgba(200,60,60,.14); border:1px solid rgba(200,60,60,.5);}
+  .decisionBar .body{flex:1; font-size:14px; color:var(--paper); line-height:1.4;}
+  .decisionBar .body b{font-weight:700;}
+  .decisionBar .close{appearance:none; background:transparent; border:0; color:var(--muted); font-size:22px; cursor:pointer; padding:0; margin:-4px; line-height:1;}
+
+  /* Justification field */
+  .justField{border:1.5px dashed rgba(246,137,34,.6);}
+  .justHint{color:var(--muted); font-size:12px; margin-top:6px; line-height:1.4;}
+
   /* Manual category picker overlay */
   .catOverlay{position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:50;
     display:none; align-items:flex-end; justify-content:center; padding:0;}
@@ -147,6 +172,12 @@
     </div>
     <div class="rule"></div>
 
+    <!-- Decision banner - shown when Alice has approved/denied a pending request -->
+    <div id="decisionBar" class="decisionBar">
+      <div class="body" id="decisionBody"></div>
+      <button class="close" id="decisionClose" aria-label="Dismiss">&times;</button>
+    </div>
+
     <!-- SCAN SCREEN -->
     <div id="scanScreen">
       <p class="lead">Scan the section QR</p>
@@ -198,6 +229,12 @@
       <div class="field">
         <label for="dest">Where's it going <span class="req">*</span></label>
         <input id="dest" type="text" placeholder="Job site or yard" autocomplete="off" required>
+      </div>
+
+      <div class="field" id="justField" style="display:none;">
+        <label for="justification">Why do you need this? <span class="req">*</span></label>
+        <textarea id="justification" class="justField" rows="3" placeholder="Be specific: reason, site, urgency..."></textarea>
+        <div class="justHint">Alice will review this to decide whether to approve.</div>
       </div>
 
       <div class="field">
@@ -258,6 +295,19 @@
     </div>
   </div>
 
+  <!-- Mitigation approval warning -->
+  <div class="mitigWarn" id="mitigWarn">
+    <div class="box">
+      <div class="icon">&#9888;</div>
+      <h3>Approval required</h3>
+      <p id="mitigWarnText">This category requires Alice's approval. Continue to submit a request?</p>
+      <div class="buttons">
+        <button class="continue" id="mitigContinue">Continue with request</button>
+        <button class="cancel" id="mitigCancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <!-- QR scanner library (jsQR - lightweight, no build step needed) -->
@@ -266,6 +316,7 @@
     // ---- Webhooks ----
     const GET_LISTS_URL    = "https://haggertybuilds.app.n8n.cloud/webhook/shop-lists";
     const CHECKOUT_WEBHOOK = "https://haggertybuilds.app.n8n.cloud/webhook/record-checkout";
+    const MY_DECISIONS_URL = "https://haggertybuilds.app.n8n.cloud/webhook/my-decisions";
     // ------------------
 
     // Known section names (in case the tools API doesn't have them yet)
@@ -327,6 +378,36 @@
         fillDropdownsFromData(data);
       } catch(err) {
         if (!cached) toast('Could not load list — refresh');
+      }
+    }
+
+    // Check for Alice's decisions for the current person
+    async function checkDecisions(personName){
+      if (!personName) return;
+      try {
+        const url = MY_DECISIONS_URL + '?person=' + encodeURIComponent(personName);
+        const res = await fetch(url, { cache: 'no-store' });
+        const data = await res.json();
+        const decisions = (data.decisions || []);
+        // Show the most recent decision
+        const dismissed = JSON.parse(sessionStorage.getItem('haggerty_dismissed_decisions') || '[]');
+        const undismissed = decisions.filter(d => !dismissed.includes(d.decisionId));
+        if (undismissed.length === 0) return;
+        const d = undismissed[0];
+        const bar = document.getElementById('decisionBar');
+        const body = document.getElementById('decisionBody');
+        bar.classList.remove('approved', 'denied');
+        if (d.status === 'Approved') {
+          bar.classList.add('approved');
+          body.innerHTML = 'Alice <b>approved</b> your request for <b>' + d.item + '</b>. Check your email for details.';
+        } else {
+          bar.classList.add('denied');
+          body.innerHTML = 'Alice <b>denied</b> your request for <b>' + d.item + '</b>.<br><b>Reason:</b> ' + (d.reason || '(no reason given)');
+        }
+        bar.dataset.decisionId = d.decisionId;
+        bar.classList.add('show');
+      } catch(e) {
+        // Silent fail
       }
     }
 
@@ -411,13 +492,58 @@
     }
 
     // -------- Screen management --------
+    // Mitigation categories that require Alice's approval for non-approved users
+    const MITIGATION_CATEGORIES = ['Dehumidifiers', 'Air Movers', 'Scrubbers AFD'];
+    let pendingSection = null;
+
+    function isMitigationCategory(section) {
+      return MITIGATION_CATEGORIES.includes(section);
+    }
+
     function goToForm(section){
+      // Check if this is a mitigation category that needs approval
+      if (isMitigationCategory(section)) {
+        pendingSection = section;
+        document.getElementById('mitigWarnText').textContent =
+          section + ' requires approval from Alice for unapproved users. If you\'re approved, checkout will proceed normally. Continue?';
+        document.getElementById('mitigWarn').classList.add('show');
+        return;
+      }
+      proceedToForm(section);
+    }
+
+    function proceedToForm(section){
       activeCategory = section;
       document.getElementById('catName').textContent = section;
       document.getElementById('scanScreen').style.display = 'none';
       document.getElementById('formScreen').style.display = 'flex';
       stopScanner();
       renderToolDropdown();
+      updateJustificationVisibility();
+    }
+
+    function updateJustificationVisibility(){
+      // Show justification field if selected name is NOT mitigation-approved AND category is mitigation
+      const nameSel = document.getElementById('name');
+      const selectedName = nameSel.value;
+      const justField = document.getElementById('justField');
+      if (!isMitigationCategory(activeCategory)) {
+        justField.style.display = 'none';
+        return;
+      }
+      if (!selectedName) {
+        justField.style.display = 'none';
+        return;
+      }
+      // Look up if this person is mitigation approved
+      const person = (cachedData && cachedData.people || []).find(p =>
+        String(p.name).trim().toLowerCase() === selectedName.trim().toLowerCase()
+      );
+      if (person && person.mitigationApproved) {
+        justField.style.display = 'none';
+      } else {
+        justField.style.display = 'block';
+      }
     }
 
     function goToScan(){
@@ -519,6 +645,39 @@
     document.getElementById('permBtn').addEventListener('click', startScanner);
     document.getElementById('catChange').addEventListener('click', showManualPicker);
 
+    // Mitigation warning modal buttons
+    document.getElementById('mitigContinue').addEventListener('click', () => {
+      document.getElementById('mitigWarn').classList.remove('show');
+      if (pendingSection) proceedToForm(pendingSection);
+      pendingSection = null;
+    });
+    document.getElementById('mitigCancel').addEventListener('click', () => {
+      document.getElementById('mitigWarn').classList.remove('show');
+      pendingSection = null;
+      // Go back to scanning
+      startScanner();
+    });
+
+    // Update justification field visibility when name changes; also check for pending decisions
+    document.getElementById('name').addEventListener('change', () => {
+      updateJustificationVisibility();
+      checkDecisions(document.getElementById('name').value);
+    });
+
+    // Dismiss decision banner
+    document.getElementById('decisionClose').addEventListener('click', () => {
+      const bar = document.getElementById('decisionBar');
+      const id = bar.dataset.decisionId;
+      if (id) {
+        const dismissed = JSON.parse(sessionStorage.getItem('haggerty_dismissed_decisions') || '[]');
+        if (!dismissed.includes(id)) {
+          dismissed.push(id);
+          sessionStorage.setItem('haggerty_dismissed_decisions', JSON.stringify(dismissed));
+        }
+      }
+      bar.classList.remove('show');
+    });
+
     // Tool search wiring
     const toolSearchEl = document.getElementById('toolSearch');
     toolSearchEl.addEventListener('focus', () => filterAndShowTools(toolSearchEl.value));
@@ -574,16 +733,35 @@
       if(!name){ toast("Pick your name"); return; }
       if(!tool){ toast("Pick a tool"); return; }
       if(!dest){ toast("Enter where it's going"); document.getElementById('dest').focus(); return; }
+      // Check if justification is required
+      const justField = document.getElementById('justField');
+      const justification = document.getElementById('justification').value.trim();
+      if (justField.style.display === 'block' && !justification) {
+        toast("Please explain why you need this");
+        document.getElementById('justification').focus();
+        return;
+      }
       submitting = true; btn.disabled = true; btn.textContent = "Checking out…";
       const due = new Date(); due.setDate(due.getDate()+days);
       const notesText = document.getElementById('notes').value.trim();
-      const payload = { person:name, tool, destination:dest, notes:notesText, dueDate:due.toISOString().slice(0,10), checkedOutAt:new Date().toISOString(), section:activeCategory };
+      const justificationText = document.getElementById('justification').value.trim();
+      const payload = { person:name, tool, destination:dest, notes:notesText, justification: justificationText, dueDate:due.toISOString().slice(0,10), checkedOutAt:new Date().toISOString(), section:activeCategory };
+      let responseData = null;
       if (CHECKOUT_WEBHOOK) {
-        try { await fetch(CHECKOUT_WEBHOOK, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) }); }
+        try {
+          const res = await fetch(CHECKOUT_WEBHOOK, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+          responseData = await res.json();
+        }
         catch(e) { toast("No signal, try again"); submitting=false; btn.disabled=false; btn.textContent="Check Out Tool"; return; }
       }
-      document.getElementById('doneLine').innerHTML = '<b>'+tool+'</b> is now out to '+name+'.';
-      document.getElementById('doneMeta').textContent = (days===0?'Due back today':'Due back '+fmt(due)) + (dest?' \u00b7 '+dest:'');
+      // Check if this is a pending approval response
+      if (responseData && responseData.status === 'pending') {
+        document.getElementById('doneLine').innerHTML = 'Your request for <b>'+tool+'</b> was sent to Alice.';
+        document.getElementById('doneMeta').textContent = 'You\'ll get an email and see a banner in the app once she decides.';
+      } else {
+        document.getElementById('doneLine').innerHTML = '<b>'+tool+'</b> is now out to '+name+'.';
+        document.getElementById('doneMeta').textContent = (days===0?'Due back today':'Due back '+fmt(due)) + (dest?' \u00b7 '+dest:'');
+      }
       document.getElementById('formScreen').style.display = 'none';
       document.getElementById('doneScreen').classList.add('show');
       submitting = false; btn.disabled = false; btn.textContent = "Check Out Tool";
@@ -595,6 +773,8 @@
       document.getElementById('dest').value = '';
       document.getElementById('dur').value = '0';
       const n = document.getElementById('notes'); if (n) n.value = '';
+      const j = document.getElementById('justification'); if (j) j.value = '';
+      const jf = document.getElementById('justField'); if (jf) jf.style.display = 'none';
       const ms = document.getElementById('micStatus'); if (ms) ms.style.display = 'none';
       activeCategory = '';
       goToScan();
