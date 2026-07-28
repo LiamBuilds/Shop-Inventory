@@ -325,7 +325,7 @@
     // ------------------
 
     // Known section names (in case the tools API doesn't have them yet)
-    const KNOWN_SECTIONS = ["Equipment","Ladders","Tools","Cleaning","Landscaping","Large Grey Bins","Pallets"];
+    const KNOWN_SECTIONS = ["Equipment","Ladders","Tools","Cleaning","Landscaping","Large Grey Bins","Pallets","Dehumidifiers","Air Movers","Scrubbers AFD"];
 
     let t;
     function toast(m){
@@ -531,11 +531,14 @@
       const overlay = document.getElementById('catOverlay');
       const list = document.getElementById('catList');
       list.innerHTML = '';
-      // Prefer sections found in loaded data; fall back to known sections
+      // Start with KNOWN_SECTIONS (always shows all real categories even if empty)
+      // then add any additional categories from loaded data
       let sections = KNOWN_SECTIONS.slice();
-      if (cachedData && (cachedData.tools||[]).some(t => t.category)) {
-        sections = Array.from(new Set((cachedData.tools||[]).map(t => t.category).filter(Boolean))).sort();
+      if (cachedData && (cachedData.tools||[]).length > 0) {
+        const fromData = (cachedData.tools||[]).map(t => t.category).filter(Boolean);
+        fromData.forEach(c => { if (!sections.includes(c)) sections.push(c); });
       }
+      sections.sort();
       sections.forEach(s => {
         const b=document.createElement('button');
         b.className = 'catBtn' + (s.toLowerCase()===activeCategory.toLowerCase()?' active':'');
