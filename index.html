@@ -45,6 +45,7 @@
   .btn-out{background:var(--orange); color:var(--ink);}
   .btn-out:active{background:var(--orange-press);}
   .btn-in{background:transparent; color:var(--paper); border:2px solid var(--gray);}
+  .btn-contents{background:#3a3a3a; color:#f4f4f2; border:1.5px solid #F68922;}
   .btn-in:active{background:#333;}
   .btn small{display:block; font-weight:500; font-size:13px; opacity:.7; margin-top:2px;}
   .btn .txt{display:flex; flex-direction:column; line-height:1.15;}
@@ -76,13 +77,17 @@
     <p class="sub">Pick one. It takes about fifteen seconds.</p>
 
     <div class="actions">
-      <a class="btn btn-out" id="checkout" href="#">
+      <a class="btn btn-out" id="checkout" href="checkout.html">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#1b1b1b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         <span class="txt">Check Out a Tool<small>Taking something from the shop</small></span>
       </a>
-      <a class="btn btn-in" id="return" href="#">
+      <a class="btn btn-in" id="return" href="return.html">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#f4f4f2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
         <span class="txt">Return a Tool<small>Bringing something back</small></span>
+      </a>
+      <a class="btn btn-contents" id="contents" href="contents.html">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#f4f4f2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9M14 17H5M8 7H5M19 17h-1"/><circle cx="17" cy="7" r="2"/><circle cx="11" cy="17" r="2"/></svg>
+        <span class="txt">Contents<small>Grab or restock supplies</small></span>
       </a>
     </div>
 
@@ -97,14 +102,6 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    const CHECKOUT_URL = "checkout.html";   // paste n8n checkout form URL
-    const RETURN_URL   = "return.html";   // paste n8n return form URL
-    function wire(id,url){
-      const el=document.getElementById(id);
-      if(url){ el.href=url; }
-      else el.addEventListener('click',e=>{ e.preventDefault(); toast("Link not set yet"); });
-    }
-    wire('checkout',CHECKOUT_URL); wire('return',RETURN_URL);
     let t; function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show');
       clearTimeout(t); t=setTimeout(()=>el.classList.remove('show'),1800); }
     const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
