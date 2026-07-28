@@ -84,6 +84,12 @@
   .mitigWarn h3{font-family:Georgia,serif; font-size:20px; margin:0 0 8px; color:var(--paper);}
   .mitigWarn p{color:var(--muted); font-size:14px; margin:0 0 20px; line-height:1.5;}
   .mitigWarn .buttons{display:flex; flex-direction:column; gap:10px;}
+  .mitigWarn textarea{width:100%; background:var(--field); color:var(--paper); border:1.5px solid var(--line);
+    border-radius:10px; padding:12px; font-size:15px; font-family:inherit; resize:vertical; min-height:80px; margin-bottom:16px;}
+  .mitigWarn textarea:focus{outline:none; border-color:var(--orange);}
+  .mitigWarn .modalLabel{display:block; text-align:left; font-size:13px; font-weight:600; letter-spacing:.02em;
+    color:var(--muted); text-transform:uppercase; margin-bottom:6px;}
+  .mitigWarn p{text-align:left;}
   .mitigWarn button{appearance:none; border:0; border-radius:12px; padding:14px; font-size:15px; font-weight:600; font-family:inherit; cursor:pointer;}
   .mitigWarn .continue{background:var(--orange); color:var(--ink);}
   .mitigWarn .cancel{background:transparent; border:1.5px solid var(--gray); color:var(--paper);}
@@ -234,14 +240,7 @@
         <input id="dest" type="text" placeholder="Job site or yard" autocomplete="off" required>
       </div>
 
-      <div class="field" id="justField" style="display:none;">
-        <div class="justNotice">This equipment requires <b>Alice&#39;s approval</b>. Explain why below and your request will be sent to her.</div>
-        <label for="justification">Why do you need this? <span class="req">*</span></label>
-        <textarea id="justification" class="justField" rows="3" placeholder="Be specific: reason, site, urgency..."></textarea>
-        <div class="justHint">Alice will review this to decide whether to approve.</div>
-      </div>
-
-      <div class="field">
+<div class="field">
         <label for="notes">Notes <span style="text-transform:none; font-weight:400; color:#777;">(optional)</span></label>
         <div class="notesRow">
           <textarea id="notes" rows="2" placeholder="Any issues, damage, or details..." autocomplete="off"></textarea>
@@ -296,6 +295,21 @@
         </button>
       </div>
       <div class="catList" id="catList"></div>
+    </div>
+  </div>
+
+  <!-- Mitigation approval modal - shown after non-approved user taps Check Out -->
+  <div class="mitigWarn" id="mitigWarn">
+    <div class="box">
+      <div class="icon">&#9888;</div>
+      <h3>Approval required</h3>
+      <p>This equipment requires <b>Alice&#39;s approval</b>. Explain why you need it and your request will be sent to her.</p>
+      <label for="modalJust" class="modalLabel">Why do you need this?</label>
+      <textarea id="modalJust" rows="3" placeholder="Be specific: reason, site, urgency..."></textarea>
+      <div class="buttons">
+        <button class="continue" id="mitigContinue">Send request to Alice</button>
+        <button class="cancel" id="mitigCancel">Cancel</button>
+      </div>
     </div>
   </div>
 
@@ -499,34 +513,11 @@
       document.getElementById('formScreen').style.display = 'flex';
       stopScanner();
       renderToolDropdown();
-      updateJustificationVisibility();
     }
 
     function proceedToForm(section){ goToForm(section); }
 
-    function updateJustificationVisibility(){
-      // Show justification field if selected name is NOT mitigation-approved AND category is mitigation
-      const nameSel = document.getElementById('name');
-      const selectedName = nameSel.value;
-      const justField = document.getElementById('justField');
-      if (!isMitigationCategory(activeCategory)) {
-        justField.style.display = 'none';
-        return;
-      }
-      if (!selectedName) {
-        justField.style.display = 'none';
-        return;
-      }
-      // Look up if this person is mitigation approved
-      const person = (cachedData && cachedData.people || []).find(p =>
-        String(p.name).trim().toLowerCase() === selectedName.trim().toLowerCase()
-      );
-      if (person && person.mitigationApproved) {
-        justField.style.display = 'none';
-      } else {
-        justField.style.display = 'block';
-      }
-    }
+
 
     function goToScan(){
       document.getElementById('formScreen').style.display = 'none';
@@ -627,9 +618,64 @@
     document.getElementById('permBtn').addEventListener('click', startScanner);
     document.getElementById('catChange').addEventListener('click', showManualPicker);
 
-    // Update justification field visibility when name changes; also check for pending decisions
+    // Mitigation approval modal buttons
+    document.getElementById('mitigContinue').addEventListener('click', async () => {
+      const justText = document.getElementById('modalJust').value.trim();
+      if (!justText) {
+        toast('Please explain why you need this');
+        document.getElementById('modalJust').focus();
+        return;
+      }
+      // Close the modal
+      document.getElementById('mitigWarn').classList.remove('show');
+      // Now submit with the justification included
+      submitting = true;
+      const btn = document.getElementById('submit');
+      btn.disabled = true;
+      btn.textContent = 'Sending request...';
+
+      const name = document.getElementById('name').value;
+      const tool = document.getElementById('tool').value;
+      const dest = document.getElementById('dest').value.trim();
+      const notesText = document.getElementById('notes').value.trim();
+      const days = parseInt(document.getElementById('dur').value,10);
+      const due = new Date(); due.setDate(due.getDate()+days);
+
+      const payload = {
+        person: name, tool, destination: dest, notes: notesText,
+        justification: justText,
+        dueDate: due.toISOString().slice(0,10),
+        checkedOutAt: new Date().toISOString(),
+        section: activeCategory
+      };
+
+      const result = await doSubmit(payload);
+      if (!result.ok) {
+        btn.disabled = false;
+        btn.textContent = "Check Out Tool";
+        submitting = false;
+        return;
+      }
+      const responseData = result.data;
+      if (responseData && responseData.status === 'pending') {
+        document.getElementById('doneLine').innerHTML = 'Your request for <b>'+tool+'</b> was sent to Alice.';
+        document.getElementById('doneMeta').textContent = 'You will get an email and see a banner in the app once she decides.';
+      } else {
+        document.getElementById('doneLine').innerHTML = '<b>'+tool+'</b> is now out to '+name+'.';
+        document.getElementById('doneMeta').textContent = (days===0?'Due back today':'Due back '+fmt(due)) + (dest?' \u00b7 '+dest:'');
+      }
+      document.getElementById('formScreen').style.display = 'none';
+      document.getElementById('doneScreen').classList.add('show');
+      submitting = false;
+      btn.disabled = false;
+      btn.textContent = "Check Out Tool";
+    });
+    document.getElementById('mitigCancel').addEventListener('click', () => {
+      document.getElementById('mitigWarn').classList.remove('show');
+    });
+
+    // Check for pending decisions when name changes
     document.getElementById('name').addEventListener('change', () => {
-      updateJustificationVisibility();
       checkDecisions(document.getElementById('name').value);
     });
 
@@ -690,6 +736,32 @@
       if (e.target.id === 'catOverlay') e.currentTarget.classList.remove('show');
     });
 
+    // Check if the current selection needs approval (mitigation category + person not approved)
+    function currentNeedsApproval(){
+      if (!isMitigationCategory(activeCategory)) return false;
+      const nameSel = document.getElementById('name');
+      const selectedName = nameSel.value;
+      if (!selectedName) return false;
+      const person = (cachedData && cachedData.people || []).find(p =>
+        String(p.name).trim().toLowerCase() === selectedName.trim().toLowerCase()
+      );
+      return !(person && person.mitigationApproved);
+    }
+
+    // Do the actual submit given a payload
+    async function doSubmit(payload){
+      const btn = document.getElementById('submit');
+      let responseData = null;
+      if (CHECKOUT_WEBHOOK) {
+        try {
+          const res = await fetch(CHECKOUT_WEBHOOK, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+          responseData = await res.json();
+        }
+        catch(e) { toast("No signal, try again"); return { ok: false }; }
+      }
+      return { ok: true, data: responseData };
+    }
+
     // Submit
     let submitting = false;
     document.getElementById('submit').addEventListener('click', async () => {
@@ -702,19 +774,18 @@
       if(!name){ toast("Pick your name"); return; }
       if(!tool){ toast("Pick a tool"); return; }
       if(!dest){ toast("Enter where it's going"); document.getElementById('dest').focus(); return; }
-      // Check if justification is required
-      const justField = document.getElementById('justField');
-      const justification = document.getElementById('justification').value.trim();
-      if (justField.style.display === 'block' && !justification) {
-        toast("Please explain why you need this");
-        document.getElementById('justification').focus();
+
+      // If mitigation category AND person is not approved, show the modal to collect justification
+      if (currentNeedsApproval()) {
+        document.getElementById('modalJust').value = '';
+        document.getElementById('mitigWarn').classList.add('show');
+        setTimeout(() => document.getElementById('modalJust').focus(), 100);
         return;
       }
       submitting = true; btn.disabled = true; btn.textContent = "Checking out…";
       const due = new Date(); due.setDate(due.getDate()+days);
       const notesText = document.getElementById('notes').value.trim();
-      const justificationText = document.getElementById('justification').value.trim();
-      const payload = { person:name, tool, destination:dest, notes:notesText, justification: justificationText, dueDate:due.toISOString().slice(0,10), checkedOutAt:new Date().toISOString(), section:activeCategory };
+      const payload = { person:name, tool, destination:dest, notes:notesText, justification: '', dueDate:due.toISOString().slice(0,10), checkedOutAt:new Date().toISOString(), section:activeCategory };
       let responseData = null;
       if (CHECKOUT_WEBHOOK) {
         try {
@@ -742,9 +813,7 @@
       document.getElementById('dest').value = '';
       document.getElementById('dur').value = '0';
       const n = document.getElementById('notes'); if (n) n.value = '';
-      const j = document.getElementById('justification'); if (j) j.value = '';
-      const jf = document.getElementById('justField'); if (jf) jf.style.display = 'none';
-      const ms = document.getElementById('micStatus'); if (ms) ms.style.display = 'none';
+const ms = document.getElementById('micStatus'); if (ms) ms.style.display = 'none';
       activeCategory = '';
       goToScan();
     });
