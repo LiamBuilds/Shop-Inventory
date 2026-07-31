@@ -233,12 +233,11 @@
         document.getElementById('lastAction').textContent = currentState.lastAction || '(none)';
       }
 
-      // Populate recipient dropdown from people list
+      // Populate recipient dropdown - only mitigation-approved people
       const recSel = document.getElementById('recipient');
       recSel.innerHTML = '<option value="" selected disabled>Pick teammate</option>';
       (currentState.people || []).forEach(p => {
-        // Exclude the current holder from the recipient list
-        if (p.name && p.name.toLowerCase() !== (currentState.currentHolder || '').toLowerCase()){
+        if (p.mitigationApproved && p.name && p.name.toLowerCase() !== (currentState.currentHolder || '').toLowerCase()){
           const opt = document.createElement('option');
           opt.value = p.name;
           opt.textContent = p.name;
@@ -246,14 +245,16 @@
         }
       });
 
-      // Populate "Who are you?" dropdown from full people list
+      // Populate "Who are you?" dropdown - only mitigation-approved people
       const whoSel = document.getElementById('whoami');
       whoSel.innerHTML = '<option value="" selected disabled>Pick your name</option>';
       (currentState.people || []).forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.name;
-        opt.textContent = p.name;
-        whoSel.appendChild(opt);
+        if (p.mitigationApproved){
+          const opt = document.createElement('option');
+          opt.value = p.name;
+          opt.textContent = p.name;
+          whoSel.appendChild(opt);
+        }
       });
       // Restore last-used name from localStorage if available
       const lastName = localStorage.getItem('haggerty_nfc_lastuser');
