@@ -96,6 +96,13 @@
     <div id="loading" class="loading">Loading unit status...</div>
 
     <div id="mainForm" style="display:none;">
+      <div class="field-form">
+        <label for="whoami">Who are you? <span class="req">*</span></label>
+        <select id="whoami">
+          <option value="" selected disabled>Pick your name</option>
+        </select>
+      </div>
+
       <div class="statusCard" id="statusCard">
         <span class="idBadge" id="idBadge">DH-000</span>
         <h2 id="itemName">Loading...</h2>
@@ -238,7 +245,34 @@
           recSel.appendChild(opt);
         }
       });
+
+      // Populate "Who are you?" dropdown from full people list
+      const whoSel = document.getElementById('whoami');
+      whoSel.innerHTML = '<option value="" selected disabled>Pick your name</option>';
+      (currentState.people || []).forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.name;
+        opt.textContent = p.name;
+        whoSel.appendChild(opt);
+      });
+      // Restore last-used name from localStorage if available
+      const lastName = localStorage.getItem('haggerty_nfc_lastuser');
+      if (lastName){
+        // Only if that name is still in the dropdown
+        for (const opt of whoSel.options){
+          if (opt.value === lastName){
+            whoSel.value = lastName;
+            break;
+          }
+        }
+      }
     }
+
+    // Remember name choice across taps
+    document.getElementById('whoami').addEventListener('change', () => {
+      const name = document.getElementById('whoami').value;
+      if (name) localStorage.setItem('haggerty_nfc_lastuser', name);
+    });
 
     // Action dropdown - show/hide relevant fields
     document.getElementById('action').addEventListener('change', () => {
@@ -275,40 +309,48 @@
     let submitting = false;
     document.getElementById('submit').addEventListener('click', async () => {
       if (submitting) return;
+      const whoami = document.getElementById('whoami').value;
       const action = document.getElementById('action').value;
       const notes = document.getElementById('notes').value.trim();
       const err = document.getElementById('errBox');
       err.classList.remove('show');
+      if (!whoami){ toast('Pick your name at the top'); document.getElementById('whoami').focus(); return; }
       if (!action){ toast('Pick an action'); return; }
       if (!currentState || !currentState.ok){ toast('No unit data'); return; }
 
       // Build the payload based on action
       let from = currentState.currentLocation || 'Shop';
       let to = '';
-      let heldBy = currentState.currentHolder || '';
+      // Default: the person tapping now becomes the holder
+      let heldBy = whoami;
       let locationType = 'Shop';
+      // "previousHolder" for email notification purposes is whoever WAS holding it before this tap
       let previousHolder = currentState.currentHolder || '';
       let notify = false;
 
       if (action === 'Load into van'){
         to = 'Van';
         locationType = 'Van';
-        // heldBy stays the same (or if first scan, no name — that's a UI issue but for now we default)
+        heldBy = whoami;
       } else if (action === 'Drop off at site'){
         const site = document.getElementById('site').value.trim();
         if (!site){ toast('Enter the site'); document.getElementById('site').focus(); return; }
         to = site;
         locationType = 'Site';
+        heldBy = whoami;
       } else if (action === 'Loan to teammate'){
         const recipient = document.getElementById('recipient').value;
         if (!recipient){ toast('Pick who is receiving it'); return; }
-        // "From" is previous holder, "To" is recipient
-        from = currentState.currentHolder || '';
+        // "From" is the person tapping (giving it away), "To" is the recipient
+        from = whoami;
         to = recipient;
         heldBy = recipient;
+        // previousHolder is the person tapping now, who is losing custody
+        previousHolder = whoami;
         locationType = currentState.currentLocationType || 'Site';
         notify = document.getElementById('notify').checked;
       } else if (action === 'Pick back up'){
+        heldBy = whoami;
         const pickup = document.getElementById('pickup').value;
         if (pickup === '__site'){
           const siteVal = document.getElementById('pickupSite').value.trim();
