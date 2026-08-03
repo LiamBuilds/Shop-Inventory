@@ -92,6 +92,26 @@
   .batchLogRow .rowText{color:var(--paper); font-size:14px; flex:1;}
   .batchLogRow .rowId{color:var(--muted); font-size:12px; margin-left:6px;}
   @keyframes slideIn{from{transform:translateY(-6px); opacity:0;} to{transform:translateY(0); opacity:1;}}
+  .tipBanner{background:linear-gradient(135deg, rgba(246,137,34,.15), rgba(246,137,34,.05)); border:1px solid rgba(246,137,34,.5); border-radius:12px; padding:14px; margin-bottom:22px;}
+  .tipInner{display:flex; align-items:flex-start; gap:12px;}
+  .tipIcon{width:32px; height:32px; background:var(--orange); color:var(--ink); border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .tipBody{flex:1; min-width:0;}
+  .tipTitle{color:var(--paper); font-weight:700; font-size:15px; margin-bottom:4px;}
+  .tipText{color:var(--muted); font-size:13px; line-height:1.4; margin-bottom:10px;}
+  .tipShow{appearance:none; background:var(--orange); color:var(--ink); border:0; border-radius:8px; padding:8px 14px; font-size:13px; font-weight:700; font-family:inherit; cursor:pointer;}
+  .tipClose{appearance:none; background:transparent; border:0; color:var(--muted); cursor:pointer; padding:4px; margin:-4px -4px 0 0; flex-shrink:0;}
+
+  .tipOverlay{position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:90; display:none; align-items:center; justify-content:center; padding:20px;}
+  .tipOverlay.show{display:flex;}
+  .tipOverlayInner{background:var(--bg); border-radius:16px; padding:22px; max-width:420px; width:100%; max-height:85vh; overflow-y:auto;}
+  .tipOverlayTop{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
+  .tipOverlayTitle{font-family:Georgia,serif; font-size:20px; color:var(--paper);}
+  .tipOverlayClose{appearance:none; background:transparent; border:0; color:var(--muted); cursor:pointer; padding:4px;}
+  .tipStep{display:flex; align-items:flex-start; gap:14px; padding:12px 0; border-bottom:1px solid var(--line);}
+  .tipStep:last-child{border-bottom:0;}
+  .tipStepNum{background:var(--orange); color:var(--ink); font-weight:800; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0;}
+  .tipStepText{color:var(--paper); font-size:14px; line-height:1.45; padding-top:4px;}
+
   .modeSelect{display:flex; gap:0; background:var(--card); border:1.5px solid var(--line); border-radius:12px; padding:4px; margin-bottom:8px;}
   .modeBtn{flex:1; appearance:none; border:0; background:transparent; color:var(--muted); padding:10px 4px; font-size:13px; font-weight:600; font-family:inherit; cursor:pointer; border-radius:9px;}
   .modeBtn.active{background:var(--orange); color:var(--ink);}
@@ -136,6 +156,39 @@
         <button type="button" class="modeBtn" data-mode="cart" id="modeCart">Review cart</button>
       </div>
       <div class="modeHelp" id="modeHelp">One tag at a time with full form</div>
+    </div>
+
+    <!-- First-time home-screen tip banner -->
+    <div class="tipBanner" id="tipBanner" style="display:none;">
+      <div class="tipInner">
+        <div class="tipIcon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5l5 5 5-5M5 21h14"/></svg>
+        </div>
+        <div class="tipBody">
+          <div class="tipTitle">Add to Home Screen</div>
+          <div class="tipText" id="tipText">Add this app to your phone home screen so NFC taps open in the same window instead of new tabs.</div>
+          <button type="button" class="tipShow" id="tipShow">Show me how</button>
+        </div>
+        <button type="button" class="tipClose" id="tipClose" aria-label="Dismiss">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Add to home instruction overlay -->
+    <div class="tipOverlay" id="tipOverlay">
+      <div class="tipOverlayInner">
+        <div class="tipOverlayTop">
+          <div class="tipOverlayTitle" id="tipOverlayTitle">Add to Home Screen</div>
+          <button type="button" class="tipOverlayClose" id="tipOverlayClose">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="tipOverlayBody" id="tipOverlayBody">
+          <!-- populated by JS based on device -->
+        </div>
+        <button class="submit" id="tipDone">Got it</button>
+      </div>
     </div>
 
     <!-- Batch mode setup screen -->
@@ -1213,7 +1266,82 @@
       }
     }
 
+    // ===== HOME SCREEN TIP LOGIC =====
+    const TIP_DISMISSED_KEY = 'haggerty_nfc_tip_dismissed';
+
+    function isStandalone(){
+      // iOS Safari uses navigator.standalone; other browsers use display-mode media query
+      if (window.navigator && window.navigator.standalone) return true;
+      if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
+      return false;
+    }
+
+    function detectPlatform(){
+      const ua = navigator.userAgent || '';
+      if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) return 'ios';
+      if (/Android/.test(ua)) return 'android';
+      return 'other';
+    }
+
+    function maybeShowTipBanner(){
+      // Don't show if running as PWA
+      if (isStandalone()) return;
+      // Don't show if user dismissed
+      if (localStorage.getItem(TIP_DISMISSED_KEY)) return;
+      // Show
+      document.getElementById('tipBanner').style.display = 'block';
+    }
+
+    document.getElementById('tipClose').addEventListener('click', () => {
+      localStorage.setItem(TIP_DISMISSED_KEY, '1');
+      document.getElementById('tipBanner').style.display = 'none';
+    });
+
+    document.getElementById('tipShow').addEventListener('click', () => {
+      openTipOverlay();
+    });
+
+    function openTipOverlay(){
+      const platform = detectPlatform();
+      const body = document.getElementById('tipOverlayBody');
+      const title = document.getElementById('tipOverlayTitle');
+      body.innerHTML = '';
+
+      if (platform === 'ios'){
+        title.textContent = 'Add to iPhone Home Screen';
+        body.innerHTML = ''
+          + '<div class="tipStep"><div class="tipStepNum">1</div><div class="tipStepText">Tap the <b>Share</b> button at the bottom of Safari (the square with an arrow pointing up).</div></div>'
+          + '<div class="tipStep"><div class="tipStepNum">2</div><div class="tipStepText">Scroll down in the menu and tap <b>Add to Home Screen</b>.</div></div>'
+          + '<div class="tipStep"><div class="tipStepNum">3</div><div class="tipStepText">Name it (like "Shop NFC") and tap <b>Add</b>.</div></div>'
+          + '<div class="tipStep"><div class="tipStepNum">4</div><div class="tipStepText">Before scanning tags, open the app from your home screen icon. Then tap tags freely.</div></div>';
+      } else if (platform === 'android'){
+        title.textContent = 'Add to Android Home Screen';
+        body.innerHTML = ''
+          + '<div class="tipStep"><div class="tipStepNum">1</div><div class="tipStepText">Tap the <b>3-dot menu</b> in the top-right of Chrome.</div></div>'
+          + '<div class="tipStep"><div class="tipStepNum">2</div><div class="tipStepText">Tap <b>Add to Home screen</b> or <b>Install app</b>.</div></div>'
+          + '<div class="tipStep"><div class="tipStepNum">3</div><div class="tipStepText">Confirm the name and tap <b>Add</b>.</div></div>'
+          + '<div class="tipStep"><div class="tipStepNum">4</div><div class="tipStepText">Before scanning tags, open the app from your home screen icon. Then tap tags freely.</div></div>';
+      } else {
+        title.textContent = 'Home Screen Setup';
+        body.innerHTML = ''
+          + '<div class="tipStep"><div class="tipStepText">This works best on a phone (iPhone or Android). Open this URL on your phone and use the browser menu to add it to your Home Screen.</div></div>';
+      }
+      document.getElementById('tipOverlay').classList.add('show');
+    }
+
+    document.getElementById('tipOverlayClose').addEventListener('click', () => {
+      document.getElementById('tipOverlay').classList.remove('show');
+    });
+    document.getElementById('tipDone').addEventListener('click', () => {
+      localStorage.setItem(TIP_DISMISSED_KEY, '1');
+      document.getElementById('tipOverlay').classList.remove('show');
+      document.getElementById('tipBanner').style.display = 'none';
+    });
+
     // ===== INIT =====
+    // Show tip if not already dismissed and not already PWA
+    maybeShowTipBanner();
+
     // Prewarm on load (fast people fetch)
     prewarmCache();
 
