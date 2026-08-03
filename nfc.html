@@ -92,6 +92,25 @@
   .batchLogRow .rowText{color:var(--paper); font-size:14px; flex:1;}
   .batchLogRow .rowId{color:var(--muted); font-size:12px; margin-left:6px;}
   @keyframes slideIn{from{transform:translateY(-6px); opacity:0;} to{transform:translateY(0); opacity:1;}}
+  .modeSelect{display:flex; gap:0; background:var(--card); border:1.5px solid var(--line); border-radius:12px; padding:4px; margin-bottom:8px;}
+  .modeBtn{flex:1; appearance:none; border:0; background:transparent; color:var(--muted); padding:10px 4px; font-size:13px; font-weight:600; font-family:inherit; cursor:pointer; border-radius:9px;}
+  .modeBtn.active{background:var(--orange); color:var(--ink);}
+  .modeHelp{color:var(--muted); font-size:12px; text-align:center;}
+  .cartItem{background:var(--card); border:1.5px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:8px; cursor:pointer; display:flex; align-items:center; gap:12px;}
+  .cartItem:active{transform:scale(.985);}
+  .cartItem.needsAction{border-color:rgba(246,137,34,.6); background:rgba(246,137,34,.06);}
+  .cartItem .cInfo{flex:1; min-width:0;}
+  .cartItem .cName{font-size:15px; font-weight:600; color:var(--paper); overflow:hidden; text-overflow:ellipsis;}
+  .cartItem .cId{color:var(--muted); font-size:11px; margin-top:2px;}
+  .cartItem .cAction{color:var(--paper); font-size:13px; margin-top:6px;}
+  .cartItem .cAction .actionMissing{color:var(--orange); font-weight:600;}
+  .cartItem .chevron{color:var(--muted); flex-shrink:0;}
+  .editSheet{position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:80; display:none; align-items:flex-end; justify-content:center;}
+  .editSheet.show{display:flex;}
+  .editSheetInner{background:var(--bg); width:100%; max-width:460px; border-radius:20px 20px 0 0; padding:20px 22px calc(28px + env(safe-area-inset-bottom)); max-height:90vh; overflow-y:auto;}
+  .editSheetTop{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
+  .editSheetTitle{font-family:Georgia,serif; font-size:19px; color:var(--paper);}
+  .editSheetClose{appearance:none; background:transparent; border:0; color:var(--muted); cursor:pointer; padding:4px;}
   .toast{position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(20px);
     background:var(--orange); color:var(--ink); font-weight:700; padding:12px 18px; border-radius:12px;
     opacity:0; pointer-events:none; transition:.25s; font-size:14px; max-width:90%; text-align:center;}
@@ -109,15 +128,14 @@
     </div>
     <div class="rule"></div>
 
-    <!-- Batch mode toggle - always visible -->
+    <!-- Batch mode selector -->
     <div class="batchBar" id="batchBar">
-      <div class="batchToggle">
-        <label class="switch">
-          <input type="checkbox" id="batchToggle">
-          <span class="switchSlider"></span>
-        </label>
-        <span class="batchLabel">Batch mode <span class="batchHelp">(rapid multi-tap)</span></span>
+      <div class="modeSelect">
+        <button type="button" class="modeBtn active" data-mode="single" id="modeSingle">Single tap</button>
+        <button type="button" class="modeBtn" data-mode="quick" id="modeQuick">Quick batch</button>
+        <button type="button" class="modeBtn" data-mode="cart" id="modeCart">Review cart</button>
       </div>
+      <div class="modeHelp" id="modeHelp">One tag at a time with full form</div>
     </div>
 
     <!-- Batch mode setup screen -->
@@ -195,6 +213,94 @@
       </div>
 
       <button class="submit" id="batchExit" style="background:var(--gray); color:var(--paper);">Exit batch mode</button>
+    </div>
+
+    <!-- Review Cart mode -->
+    <div id="cartMode" style="display:none;">
+      <div class="field-form">
+        <label for="cartWhoami">Who are you? <span class="req">*</span></label>
+        <select id="cartWhoami">
+          <option value="" selected disabled>Loading names...</option>
+        </select>
+      </div>
+
+      <div class="statusCard">
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <div>
+            <div style="font-size:12px; text-transform:uppercase; color:var(--muted); letter-spacing:.05em;">Cart</div>
+            <h2 style="margin:6px 0;" id="cartTitle">Ready for tags</h2>
+            <div style="color:var(--muted); font-size:13px;" id="cartSubtitle">Tap tags to add items. Then review and set actions.</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:38px; font-weight:800; color:var(--orange); line-height:1;" id="cartCounter">0</div>
+            <div style="font-size:12px; color:var(--muted); margin-top:2px;">in cart</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="cartList" style="margin-bottom:16px;"></div>
+
+      <div style="background:rgba(63,178,127,.10); border:1px solid rgba(63,178,127,.4); border-radius:12px; padding:16px; text-align:center; margin-bottom:16px;" id="cartHint">
+        <div style="font-size:15px; color:var(--paper); font-weight:600;">Tap the next tag now</div>
+        <div style="font-size:13px; color:var(--muted); margin-top:4px;">Tap any item below to edit it</div>
+      </div>
+
+      <button class="submit" id="cartCommit" style="margin-bottom:10px;" disabled>Commit all (0 items)</button>
+      <button class="submit" id="cartClear" style="background:var(--gray); color:var(--paper);">Clear cart</button>
+    </div>
+
+    <!-- Cart item edit sheet -->
+    <div class="editSheet" id="editSheet">
+      <div class="editSheetInner">
+        <div class="editSheetTop">
+          <div class="editSheetTitle" id="editSheetTitle">Edit item</div>
+          <button type="button" class="editSheetClose" id="editSheetClose">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <div class="field-form">
+          <label for="editAction">Action <span class="req">*</span></label>
+          <select id="editAction">
+            <option value="" selected disabled>Choose action</option>
+            <option value="Load into van">Load into van</option>
+            <option value="Drop off at site">Drop off at site</option>
+            <option value="Loan to teammate">Loan to teammate</option>
+            <option value="Pick back up">Pick back up</option>
+            <option value="Return to shop">Return to shop</option>
+          </select>
+        </div>
+
+        <div class="field-form" id="editSiteField" style="display:none;">
+          <label for="editSite">Site / address <span class="req">*</span></label>
+          <input id="editSite" type="text" autocomplete="off">
+        </div>
+
+        <div class="field-form" id="editRecipientField" style="display:none;">
+          <label for="editRecipient">Recipient <span class="req">*</span></label>
+          <select id="editRecipient">
+            <option value="" selected disabled>Pick teammate</option>
+          </select>
+        </div>
+
+        <div class="field-form" id="editPickupField" style="display:none;">
+          <label for="editPickup">Where to?</label>
+          <select id="editPickup">
+            <option value="Van" selected>Back to van</option>
+            <option value="Shop">Back to shop</option>
+            <option value="__site">To a new site</option>
+          </select>
+          <input id="editPickupSite" type="text" placeholder="Site / address" autocomplete="off" style="margin-top:10px; display:none;">
+        </div>
+
+        <div class="field-form">
+          <label for="editNotes">Notes (optional)</label>
+          <textarea id="editNotes" rows="2" autocomplete="off"></textarea>
+        </div>
+
+        <button class="submit" id="editSave">Save</button>
+        <button class="submit" id="editRemove" style="background:var(--danger); margin-top:8px;">Remove from cart</button>
+      </div>
     </div>
 
     <div id="loading" class="loading">Loading unit status...</div>
@@ -284,6 +390,7 @@
   <script>
     const NFC_STATUS_URL   = "https://haggertybuilds.app.n8n.cloud/webhook/nfc-status";
     const NFC_TX_URL       = "https://haggertybuilds.app.n8n.cloud/webhook/nfc-transaction";
+    const NFC_PEOPLE_URL   = "https://haggertybuilds.app.n8n.cloud/webhook/nfc-people";
 
     let currentState = null; // { itemId, item, category, currentHolder, currentLocation, currentLocationType, people }
     let t;
@@ -541,27 +648,74 @@
       try { sessionStorage.setItem(key, JSON.stringify({ t: Date.now(), d: data })); } catch(e){}
     }
 
-    // ===== BATCH MODE =====
-    let batchMode = false;
-    let batchSettings = null; // { whoami, action, site, recipient, notify, pickup, pickupSite }
+    // ===== MODE MANAGEMENT =====
+    // Modes: 'single' (default), 'quick' (fast batch), 'cart' (review batch)
+    let currentMode = 'single';
+    let batchSettings = null; // for quick mode
     let batchCount = 0;
 
-    document.getElementById('batchToggle').addEventListener('change', (e) => {
-      batchMode = e.target.checked;
-      toggleBatchUI();
+    const MODE_KEY = 'haggerty_nfc_mode';
+    const CART_KEY = 'haggerty_nfc_cart_v1';
+    const CART_WHOAMI_KEY = 'haggerty_nfc_cart_whoami';
+
+    document.querySelectorAll('.modeBtn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mode = btn.dataset.mode;
+        setMode(mode, true);
+      });
     });
 
-    function toggleBatchUI(){
-      if (batchMode){
-        document.getElementById('mainForm').style.display = 'none';
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('batchSetup').style.display = 'block';
-        document.getElementById('batchActive').style.display = 'none';
-        populateBatchSetup();
-      } else {
-        document.getElementById('batchSetup').style.display = 'none';
-        document.getElementById('batchActive').style.display = 'none';
+    function setMode(mode, userAction){
+      currentMode = mode;
+      // Update button visual state
+      document.querySelectorAll('.modeBtn').forEach(b => {
+        b.classList.toggle('active', b.dataset.mode === mode);
+      });
+      // Update help text
+      const helpText = {
+        single: 'One tag at a time with full form',
+        quick: 'Rapid taps, same action for all',
+        cart: 'Tap tags into cart, review and edit each'
+      };
+      document.getElementById('modeHelp').textContent = helpText[mode];
+      // Save preference
+      localStorage.setItem(MODE_KEY, mode);
+      // Show/hide sections
+      document.getElementById('mainForm').style.display = 'none';
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('batchSetup').style.display = 'none';
+      document.getElementById('batchActive').style.display = 'none';
+      document.getElementById('cartMode').style.display = 'none';
+
+      if (mode === 'single'){
+        // Load normal status view (always, since form needs data)
         loadStatus();
+      } else if (mode === 'quick'){
+        // Show batch setup if not already in a batch, otherwise resume
+        const savedBatch = loadBatchSession();
+        if (savedBatch){
+          batchSettings = savedBatch.settings;
+          batchCount = savedBatch.count || 0;
+          document.getElementById('batchActive').style.display = 'block';
+          document.getElementById('batchActionLabel').textContent = batchSettings.action;
+          let details = 'by ' + batchSettings.whoami;
+          if (batchSettings.site) details += ' at ' + batchSettings.site;
+          if (batchSettings.recipient) details += ' -> ' + batchSettings.recipient;
+          document.getElementById('batchDetails').textContent = details;
+          document.getElementById('batchCounter').textContent = batchCount;
+          // Auto-record current URL id if present
+          const id = getIdFromUrl();
+          if (id) recordBatchTap(id);
+        } else {
+          document.getElementById('batchSetup').style.display = 'block';
+          populateBatchSetup();
+        }
+      } else if (mode === 'cart'){
+        document.getElementById('cartMode').style.display = 'block';
+        populateCartMode();
+        // Auto-add current URL id to cart if present
+        const id = getIdFromUrl();
+        if (id) addToCart(id);
       }
     }
 
@@ -776,54 +930,311 @@
       });
     }
 
+    // ===== CART MODE =====
+    let cart = []; // [{ id, item, category, action, site, recipient, notify, pickup, pickupSite, notes }]
+
+    function loadCart(){
+      try {
+        const raw = localStorage.getItem(CART_KEY);
+        cart = raw ? JSON.parse(raw) : [];
+      } catch(e){ cart = []; }
+    }
+    function saveCart(){
+      try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch(e){}
+    }
+    function clearCart(){
+      cart = [];
+      saveCart();
+      renderCart();
+    }
+
+    function populateCartMode(){
+      loadCart();
+      // Populate whoami dropdown from cached people
+      const cached = readCache(CACHE_KEY_PEOPLE);
+      const whoSel = document.getElementById('cartWhoami');
+      whoSel.innerHTML = '<option value="" selected disabled>Pick your name</option>';
+      if (cached && cached.length){
+        cached.forEach(p => {
+          if (p.mitigationApproved){
+            const opt = document.createElement('option');
+            opt.value = p.name; opt.textContent = p.name;
+            whoSel.appendChild(opt);
+          }
+        });
+        const last = localStorage.getItem(CART_WHOAMI_KEY) || localStorage.getItem('haggerty_nfc_lastuser');
+        if (last) whoSel.value = last;
+      } else {
+        // Fire fast fetch
+        fetchPeople().then(() => populateCartMode());
+      }
+      renderCart();
+    }
+
+    // Persist whoami choice in cart mode
+    document.getElementById('cartWhoami').addEventListener('change', () => {
+      const name = document.getElementById('cartWhoami').value;
+      if (name){
+        localStorage.setItem('haggerty_nfc_lastuser', name);
+        localStorage.setItem(CART_WHOAMI_KEY, name);
+      }
+    });
+
+    async function addToCart(itemId){
+      const id = itemId.trim().toUpperCase();
+      // Prevent exact duplicates on same page load; allow re-add if item is completed and removed
+      // Look up item details from catalog cache
+      let item = '', category = '';
+      const catalog = readCache(CACHE_KEY_CATALOG);
+      if (catalog && catalog[id]){
+        item = catalog[id].item;
+        category = catalog[id].category;
+      } else {
+        // Fallback: fetch status to get item name (this is slower)
+        try {
+          const res = await fetch(NFC_STATUS_URL + '?id=' + encodeURIComponent(id), { cache: 'no-store' });
+          const data = await res.json();
+          if (data && data.ok){
+            item = data.item || '';
+            category = data.category || '';
+            // Update catalog cache
+            const cat = readCache(CACHE_KEY_CATALOG) || {};
+            cat[id] = { item, category };
+            writeCache(CACHE_KEY_CATALOG, cat);
+          }
+        } catch(e){}
+      }
+      cart.push({
+        id, item, category,
+        action: '', site: '', recipient: '', notify: false,
+        pickup: 'Van', pickupSite: '', notes: ''
+      });
+      saveCart();
+      renderCart();
+      if (navigator.vibrate) navigator.vibrate(30);
+    }
+
+    function renderCart(){
+      const list = document.getElementById('cartList');
+      list.innerHTML = '';
+      cart.forEach((item, idx) => {
+        const row = document.createElement('div');
+        row.className = 'cartItem' + (item.action ? '' : ' needsAction');
+        const name = item.item || item.id;
+        let actionDisplay = item.action || '<span class="actionMissing">Action needed</span>';
+        if (item.action && item.site) actionDisplay += ' - ' + item.site;
+        if (item.action && item.recipient) actionDisplay += ' - ' + item.recipient;
+        row.innerHTML = '<div class="cInfo"><div class="cName">' + name + '</div><div class="cId">' + item.id + '</div><div class="cAction">' + actionDisplay + '</div></div><div class="chevron"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>';
+        row.addEventListener('click', () => openEditSheet(idx));
+        list.appendChild(row);
+      });
+      // Update counter and commit button
+      document.getElementById('cartCounter').textContent = cart.length;
+      const commitBtn = document.getElementById('cartCommit');
+      const allSet = cart.length > 0 && cart.every(i => i.action);
+      commitBtn.disabled = !allSet;
+      commitBtn.textContent = allSet
+        ? ('Commit all (' + cart.length + ' items)')
+        : (cart.length === 0 ? 'Commit all (0 items)' : 'Set action on all items to commit');
+    }
+
+    // Edit sheet - shows form for one cart item
+    let editingIdx = -1;
+    function openEditSheet(idx){
+      editingIdx = idx;
+      const item = cart[idx];
+      document.getElementById('editSheetTitle').textContent = 'Edit ' + (item.item || item.id);
+      document.getElementById('editAction').value = item.action || '';
+      document.getElementById('editSite').value = item.site || '';
+      document.getElementById('editPickup').value = item.pickup || 'Van';
+      document.getElementById('editPickupSite').value = item.pickupSite || '';
+      document.getElementById('editNotes').value = item.notes || '';
+      // Populate recipient dropdown - only mitigation-approved excluding current whoami
+      const recSel = document.getElementById('editRecipient');
+      const cached = readCache(CACHE_KEY_PEOPLE) || [];
+      const whoami = document.getElementById('cartWhoami').value;
+      recSel.innerHTML = '<option value="" selected disabled>Pick teammate</option>';
+      cached.forEach(p => {
+        if (p.mitigationApproved && p.name.toLowerCase() !== (whoami || '').toLowerCase()){
+          const opt = document.createElement('option');
+          opt.value = p.name; opt.textContent = p.name;
+          if (p.name === item.recipient) opt.selected = true;
+          recSel.appendChild(opt);
+        }
+      });
+      // Set field visibility for the loaded action
+      updateEditFieldVisibility();
+      document.getElementById('editSheet').classList.add('show');
+    }
+
+    function updateEditFieldVisibility(){
+      const action = document.getElementById('editAction').value;
+      document.getElementById('editSiteField').style.display = action === 'Drop off at site' ? 'block' : 'none';
+      document.getElementById('editRecipientField').style.display = action === 'Loan to teammate' ? 'block' : 'none';
+      document.getElementById('editPickupField').style.display = action === 'Pick back up' ? 'block' : 'none';
+    }
+    document.getElementById('editAction').addEventListener('change', updateEditFieldVisibility);
+    document.getElementById('editPickup').addEventListener('change', () => {
+      const v = document.getElementById('editPickup').value;
+      document.getElementById('editPickupSite').style.display = v === '__site' ? 'block' : 'none';
+    });
+
+    document.getElementById('editSheetClose').addEventListener('click', () => {
+      document.getElementById('editSheet').classList.remove('show');
+      editingIdx = -1;
+    });
+
+    document.getElementById('editSave').addEventListener('click', () => {
+      if (editingIdx < 0) return;
+      const action = document.getElementById('editAction').value;
+      if (!action){ toast('Pick an action'); return; }
+      if (action === 'Drop off at site'){
+        const site = document.getElementById('editSite').value.trim();
+        if (!site){ toast('Enter the site'); return; }
+        cart[editingIdx].site = site;
+      } else if (action === 'Loan to teammate'){
+        const rec = document.getElementById('editRecipient').value;
+        if (!rec){ toast('Pick who is receiving'); return; }
+        cart[editingIdx].recipient = rec;
+      } else if (action === 'Pick back up'){
+        cart[editingIdx].pickup = document.getElementById('editPickup').value;
+        if (cart[editingIdx].pickup === '__site'){
+          const psite = document.getElementById('editPickupSite').value.trim();
+          if (!psite){ toast('Enter the site'); return; }
+          cart[editingIdx].pickupSite = psite;
+        }
+      }
+      cart[editingIdx].action = action;
+      cart[editingIdx].notes = document.getElementById('editNotes').value.trim();
+      saveCart();
+      renderCart();
+      document.getElementById('editSheet').classList.remove('show');
+      editingIdx = -1;
+    });
+
+    document.getElementById('editRemove').addEventListener('click', () => {
+      if (editingIdx < 0) return;
+      cart.splice(editingIdx, 1);
+      saveCart();
+      renderCart();
+      document.getElementById('editSheet').classList.remove('show');
+      editingIdx = -1;
+    });
+
+    document.getElementById('cartClear').addEventListener('click', () => {
+      if (cart.length === 0) return;
+      if (confirm('Clear all items from cart?')){
+        clearCart();
+      }
+    });
+
+    document.getElementById('cartCommit').addEventListener('click', async () => {
+      const whoami = document.getElementById('cartWhoami').value;
+      if (!whoami){ toast('Pick your name at the top'); return; }
+      if (cart.length === 0){ toast('Cart is empty'); return; }
+      if (!cart.every(i => i.action)){ toast('Set action on all items first'); return; }
+
+      const btn = document.getElementById('cartCommit');
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Committing...';
+
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const item of cart){
+        // Build payload per item based on its action
+        let from = 'Shop', to = '', heldBy = whoami, locationType = 'Shop';
+        let previousHolder = '', notify = false;
+        if (item.action === 'Load into van'){
+          to = 'Van'; locationType = 'Van';
+        } else if (item.action === 'Drop off at site'){
+          to = item.site; locationType = 'Site'; from = 'Van';
+        } else if (item.action === 'Loan to teammate'){
+          from = whoami; to = item.recipient; heldBy = item.recipient;
+          previousHolder = whoami; locationType = 'Site';
+        } else if (item.action === 'Pick back up'){
+          if (item.pickup === '__site'){ to = item.pickupSite; locationType = 'Site'; }
+          else if (item.pickup === 'Shop'){ to = 'Shop'; locationType = 'Shop'; }
+          else { to = 'Van'; locationType = 'Van'; }
+          from = 'Site';
+        } else if (item.action === 'Return to shop'){
+          to = 'Shop'; locationType = 'Shop'; heldBy = ''; from = 'Van';
+        }
+        const payload = {
+          itemId: item.id, item: item.item, category: item.category,
+          action: item.action, from, to, heldBy, locationType,
+          notes: item.notes || '', previousHolder, notify
+        };
+        try {
+          const res = await fetch(NFC_TX_URL, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          if (data.ok) successCount++;
+          else failCount++;
+        } catch(e){ failCount++; }
+      }
+
+      if (failCount === 0){
+        // Success - clear cart and show done
+        clearCart();
+        document.getElementById('cartMode').style.display = 'none';
+        document.getElementById('doneScreen').classList.add('show');
+        document.querySelector('#doneScreen h2').textContent = 'All committed';
+        document.getElementById('doneLine').textContent = successCount + ' item' + (successCount === 1 ? '' : 's') + ' recorded.';
+      } else {
+        btn.disabled = false;
+        btn.textContent = originalText;
+        toast(successCount + ' succeeded, ' + failCount + ' failed. Check network and retry.');
+      }
+    });
+
+    // ===== FAST PEOPLE FETCH (dedicated fast endpoint) =====
+    async function fetchPeople(){
+      try {
+        const res = await fetch(NFC_PEOPLE_URL, { cache: 'no-store' });
+        const data = await res.json();
+        if (data && data.people){
+          writeCache(CACHE_KEY_PEOPLE, data.people);
+          return data.people;
+        }
+      } catch(e){}
+      return null;
+    }
+
     // ===== PREWARM CACHE (fetch people + catalog once, cache for 30 min) =====
     async function prewarmCache(){
       const cachedPeople = readCache(CACHE_KEY_PEOPLE);
-      const cachedCatalog = readCache(CACHE_KEY_CATALOG);
-      if (cachedPeople && cachedCatalog) return;
-
-      // Use any ItemID to trigger a fetch that includes people + catalog
-      // Just use a dummy that won't match anything; we only care about the metadata
-      try {
-        const res = await fetch(NFC_STATUS_URL + '?id=DUMMY', { cache: 'no-store' });
-        const data = await res.json();
-        if (data.people) writeCache(CACHE_KEY_PEOPLE, data.people);
-        // Catalog: reconstruct from any items we can see. Actually the current API doesn\'t return the full catalog.
-        // For now, we can only cache the people list.
-      } catch(e){}
+      if (!cachedPeople){
+        await fetchPeople();
+      }
     }
 
     // ===== INIT =====
-    // Prewarm on load
+    // Prewarm on load (fast people fetch)
     prewarmCache();
 
-    // Check if batch mode was active from a previous scan
-    const savedBatch = loadBatchSession();
-    if (savedBatch){
-      batchMode = true;
-      batchSettings = savedBatch.settings;
-      batchCount = savedBatch.count || 0;
-      document.getElementById('batchToggle').checked = true;
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('batchSetup').style.display = 'none';
-      document.getElementById('batchActive').style.display = 'block';
-      // Populate the active screen
-      document.getElementById('batchActionLabel').textContent = batchSettings.action;
-      let details = 'by ' + batchSettings.whoami;
-      if (batchSettings.site) details += ' at ' + batchSettings.site;
-      if (batchSettings.recipient) details += ' -> ' + batchSettings.recipient;
-      document.getElementById('batchDetails').textContent = details;
-      document.getElementById('batchCounter').textContent = batchCount;
+    // Determine initial mode: check for active batch first, then cart, then saved preference
+    (function initMode(){
+      const savedBatch = loadBatchSession();
+      loadCart();
+      const savedMode = localStorage.getItem(MODE_KEY);
 
-      // If URL has an ItemID, immediately record it
-      const id = getIdFromUrl();
-      if (id){
-        recordBatchTap(id);
+      if (savedBatch){
+        // Quick batch is in progress - resume it
+        setMode('quick', false);
+      } else if (cart.length > 0){
+        // Cart has items - go to cart mode
+        setMode('cart', false);
+      } else if (savedMode && ['single', 'quick', 'cart'].includes(savedMode)){
+        setMode(savedMode, false);
+      } else {
+        setMode('single', false);
       }
-    } else {
-      // Normal mode - load status card
-      loadStatus();
-    }
+    })();
   </script>
 </body>
 </html>
