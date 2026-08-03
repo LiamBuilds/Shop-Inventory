@@ -76,6 +76,22 @@
   .errBox{background:rgba(200,60,60,.14); border:1px solid rgba(200,60,60,.5); border-radius:12px; padding:16px; margin-bottom:16px; color:var(--paper); font-size:14px; display:none;}
   .errBox.show{display:block;}
 
+  .batchBar{margin-bottom:22px;}
+  .batchToggle{display:flex; align-items:center; gap:10px; background:var(--card); border:1.5px solid var(--line); border-radius:12px; padding:12px 14px;}
+  .batchLabel{color:var(--paper); font-size:15px; font-weight:600;}
+  .batchHelp{color:var(--muted); font-weight:400; font-size:13px;}
+  .switch{position:relative; display:inline-block; width:44px; height:24px; flex-shrink:0;}
+  .switch input{opacity:0; width:0; height:0;}
+  .switchSlider{position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:var(--gray); border-radius:24px; transition:.2s;}
+  .switchSlider:before{position:absolute; content:""; height:18px; width:18px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:.2s;}
+  .switch input:checked + .switchSlider{background:var(--orange);}
+  .switch input:checked + .switchSlider:before{transform:translateX(20px);}
+  .batchLogRow{background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:6px; display:flex; align-items:center; gap:10px; animation:slideIn .25s;}
+  .batchLogRow.pending{opacity:.6;}
+  .batchLogRow .icon{width:18px; height:18px; flex-shrink:0;}
+  .batchLogRow .rowText{color:var(--paper); font-size:14px; flex:1;}
+  .batchLogRow .rowId{color:var(--muted); font-size:12px; margin-left:6px;}
+  @keyframes slideIn{from{transform:translateY(-6px); opacity:0;} to{transform:translateY(0); opacity:1;}}
   .toast{position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(20px);
     background:var(--orange); color:var(--ink); font-weight:700; padding:12px 18px; border-radius:12px;
     opacity:0; pointer-events:none; transition:.25s; font-size:14px; max-width:90%; text-align:center;}
@@ -92,6 +108,94 @@
       <span class="htitle">NFC Tag</span>
     </div>
     <div class="rule"></div>
+
+    <!-- Batch mode toggle - always visible -->
+    <div class="batchBar" id="batchBar">
+      <div class="batchToggle">
+        <label class="switch">
+          <input type="checkbox" id="batchToggle">
+          <span class="switchSlider"></span>
+        </label>
+        <span class="batchLabel">Batch mode <span class="batchHelp">(rapid multi-tap)</span></span>
+      </div>
+    </div>
+
+    <!-- Batch mode setup screen -->
+    <div id="batchSetup" style="display:none;">
+      <div class="statusCard firstScan">
+        <h2 style="color:var(--orange);">Batch mode setup</h2>
+        <p style="color:var(--muted); margin:6px 0 0; font-size:14px;">Pick your name and action once. Then tap tags rapidly.</p>
+      </div>
+
+      <div class="field-form">
+        <label for="batchWhoami">Who are you? <span class="req">*</span></label>
+        <select id="batchWhoami">
+          <option value="" selected disabled>Pick your name</option>
+        </select>
+      </div>
+
+      <div class="field-form">
+        <label for="batchAction">Action for all taps <span class="req">*</span></label>
+        <select id="batchAction">
+          <option value="" selected disabled>Choose action</option>
+          <option value="Load into van">Load into van</option>
+          <option value="Drop off at site">Drop off at site</option>
+          <option value="Loan to teammate">Loan to teammate</option>
+          <option value="Pick back up">Pick back up</option>
+          <option value="Return to shop">Return to shop</option>
+        </select>
+      </div>
+
+      <div class="field-form" id="batchSiteField" style="display:none;">
+        <label for="batchSite">Site / address <span class="req">*</span></label>
+        <input id="batchSite" type="text" placeholder="e.g. Smith Residence, 1234 Main St" autocomplete="off">
+      </div>
+
+      <div class="field-form" id="batchRecipientField" style="display:none;">
+        <label for="batchRecipient">Who is receiving <span class="req">*</span></label>
+        <select id="batchRecipient">
+          <option value="" selected disabled>Pick teammate</option>
+        </select>
+      </div>
+
+      <div class="field-form" id="batchPickupField" style="display:none;">
+        <label for="batchPickup">Where are you taking them?</label>
+        <select id="batchPickup">
+          <option value="Van" selected>Back to van</option>
+          <option value="Shop">Back to shop</option>
+          <option value="__site">To a new site (type address)</option>
+        </select>
+        <input id="batchPickupSite" type="text" placeholder="Site / address" autocomplete="off" style="margin-top:10px; display:none;">
+      </div>
+
+      <button class="submit" id="batchStart">Start batch scanning</button>
+    </div>
+
+    <!-- Batch mode active screen -->
+    <div id="batchActive" style="display:none;">
+      <div class="statusCard">
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <div>
+            <div style="font-size:12px; text-transform:uppercase; color:var(--muted); letter-spacing:.05em;">Batch mode active</div>
+            <h2 id="batchActionLabel" style="margin:6px 0;"></h2>
+            <div style="color:var(--muted); font-size:14px;" id="batchDetails"></div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:42px; font-weight:800; color:var(--orange); line-height:1;" id="batchCounter">0</div>
+            <div style="font-size:12px; color:var(--muted); margin-top:2px;">recorded</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="batchLog" style="margin-bottom:20px;"></div>
+
+      <div style="background:rgba(63,178,127,.10); border:1px solid rgba(63,178,127,.4); border-radius:12px; padding:16px; text-align:center; margin-bottom:16px;">
+        <div style="font-size:15px; color:var(--paper); font-weight:600;">Tap the next tag now</div>
+        <div style="font-size:13px; color:var(--muted); margin-top:4px;">Or tap Exit when done</div>
+      </div>
+
+      <button class="submit" id="batchExit" style="background:var(--gray); color:var(--paper);">Exit batch mode</button>
+    </div>
 
     <div id="loading" class="loading">Loading unit status...</div>
 
@@ -418,8 +522,308 @@
       }
     });
 
-    // Init
-    loadStatus();
+
+    // ===== CACHING =====
+    const CACHE_KEY_CATALOG = 'haggerty_nfc_catalog_v2';
+    const CACHE_KEY_PEOPLE = 'haggerty_nfc_people_v2';
+    const CACHE_MINUTES = 30;
+
+    function readCache(key){
+      try {
+        const raw = sessionStorage.getItem(key);
+        if (!raw) return null;
+        const obj = JSON.parse(raw);
+        if (Date.now() - (obj.t || 0) > CACHE_MINUTES * 60 * 1000) return null;
+        return obj.d;
+      } catch(e){ return null; }
+    }
+    function writeCache(key, data){
+      try { sessionStorage.setItem(key, JSON.stringify({ t: Date.now(), d: data })); } catch(e){}
+    }
+
+    // ===== BATCH MODE =====
+    let batchMode = false;
+    let batchSettings = null; // { whoami, action, site, recipient, notify, pickup, pickupSite }
+    let batchCount = 0;
+
+    document.getElementById('batchToggle').addEventListener('change', (e) => {
+      batchMode = e.target.checked;
+      toggleBatchUI();
+    });
+
+    function toggleBatchUI(){
+      if (batchMode){
+        document.getElementById('mainForm').style.display = 'none';
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('batchSetup').style.display = 'block';
+        document.getElementById('batchActive').style.display = 'none';
+        populateBatchSetup();
+      } else {
+        document.getElementById('batchSetup').style.display = 'none';
+        document.getElementById('batchActive').style.display = 'none';
+        loadStatus();
+      }
+    }
+
+    function populateBatchSetup(){
+      // Populate name dropdown - only mitigation approved
+      const cached = readCache(CACHE_KEY_PEOPLE);
+      const whoSel = document.getElementById('batchWhoami');
+      whoSel.innerHTML = '<option value="" selected disabled>Pick your name</option>';
+      if (cached){
+        cached.forEach(p => {
+          if (p.mitigationApproved){
+            const opt = document.createElement('option');
+            opt.value = p.name;
+            opt.textContent = p.name;
+            whoSel.appendChild(opt);
+          }
+        });
+        // Restore last user
+        const last = localStorage.getItem('haggerty_nfc_lastuser');
+        if (last) whoSel.value = last;
+      } else {
+        // Trigger fetch
+        prewarmCache();
+      }
+
+      // Populate recipient dropdown too
+      const recSel = document.getElementById('batchRecipient');
+      recSel.innerHTML = '<option value="" selected disabled>Pick teammate</option>';
+      if (cached){
+        cached.forEach(p => {
+          if (p.mitigationApproved){
+            const opt = document.createElement('option');
+            opt.value = p.name;
+            opt.textContent = p.name;
+            recSel.appendChild(opt);
+          }
+        });
+      }
+    }
+
+    // Batch mode: dynamic field visibility
+    document.getElementById('batchAction').addEventListener('change', () => {
+      const action = document.getElementById('batchAction').value;
+      document.getElementById('batchSiteField').style.display = action === 'Drop off at site' ? 'block' : 'none';
+      document.getElementById('batchRecipientField').style.display = action === 'Loan to teammate' ? 'block' : 'none';
+      document.getElementById('batchPickupField').style.display = action === 'Pick back up' ? 'block' : 'none';
+    });
+
+    document.getElementById('batchPickup').addEventListener('change', () => {
+      const val = document.getElementById('batchPickup').value;
+      document.getElementById('batchPickupSite').style.display = val === '__site' ? 'block' : 'none';
+    });
+
+    // Session persistence
+    const BATCH_KEY = 'haggerty_nfc_batch_active';
+    function saveBatchSession(){
+      if (batchSettings){
+        sessionStorage.setItem(BATCH_KEY, JSON.stringify({ settings: batchSettings, count: batchCount }));
+      } else {
+        sessionStorage.removeItem(BATCH_KEY);
+      }
+    }
+    function loadBatchSession(){
+      try {
+        const raw = sessionStorage.getItem(BATCH_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch(e){ return null; }
+    }
+
+    // Start batch mode
+    document.getElementById('batchStart').addEventListener('click', () => {
+      const whoami = document.getElementById('batchWhoami').value;
+      const action = document.getElementById('batchAction').value;
+      if (!whoami){ toast('Pick your name'); return; }
+      if (!action){ toast('Pick an action'); return; }
+
+      const settings = { whoami, action };
+      if (action === 'Drop off at site'){
+        const site = document.getElementById('batchSite').value.trim();
+        if (!site){ toast('Enter the site'); return; }
+        settings.site = site;
+      } else if (action === 'Loan to teammate'){
+        const recipient = document.getElementById('batchRecipient').value;
+        if (!recipient){ toast('Pick who is receiving'); return; }
+        settings.recipient = recipient;
+      } else if (action === 'Pick back up'){
+        const pickup = document.getElementById('batchPickup').value;
+        settings.pickup = pickup;
+        if (pickup === '__site'){
+          const psite = document.getElementById('batchPickupSite').value.trim();
+          if (!psite){ toast('Enter the site'); return; }
+          settings.pickupSite = psite;
+        }
+      }
+
+      batchSettings = settings;
+      batchCount = 0;
+      localStorage.setItem('haggerty_nfc_lastuser', whoami);
+      saveBatchSession();
+      startBatchActive();
+    });
+
+    function startBatchActive(){
+      document.getElementById('batchSetup').style.display = 'none';
+      document.getElementById('batchActive').style.display = 'block';
+      document.getElementById('batchActionLabel').textContent = batchSettings.action;
+      let details = 'by ' + batchSettings.whoami;
+      if (batchSettings.site) details += ' at ' + batchSettings.site;
+      if (batchSettings.recipient) details += ' -> ' + batchSettings.recipient;
+      document.getElementById('batchDetails').textContent = details;
+      document.getElementById('batchCounter').textContent = '0';
+      document.getElementById('batchLog').innerHTML = '';
+
+      // If we have an id in the URL right now, immediately record it
+      const id = getIdFromUrl();
+      if (id) recordBatchTap(id);
+    }
+
+    // Exit batch mode
+    document.getElementById('batchExit').addEventListener('click', () => {
+      batchMode = false;
+      document.getElementById('batchToggle').checked = false;
+      batchSettings = null;
+      batchCount = 0;
+      sessionStorage.removeItem(BATCH_KEY);
+      document.getElementById('batchActive').style.display = 'none';
+      document.getElementById('batchSetup').style.display = 'none';
+      loadStatus();
+    });
+
+    // The core batch tap recorder - optimistic UI
+    function recordBatchTap(itemId){
+      const id = itemId.toUpperCase();
+
+      // Add pending row immediately for optimistic UI
+      const logEl = document.getElementById('batchLog');
+      const row = document.createElement('div');
+      row.className = 'batchLogRow pending';
+      row.innerHTML = '<div class="rowText">Recording... <span class="rowId">' + id + '</span></div>';
+      logEl.insertBefore(row, logEl.firstChild);
+
+      // Look up catalog entry
+      const catalog = readCache(CACHE_KEY_CATALOG) || {};
+      const catEntry = catalog[id] || { item: '', category: '' };
+
+      // Build payload based on batch settings
+      const s = batchSettings;
+      let from = 'Shop';
+      let to = '';
+      let heldBy = s.whoami;
+      let locationType = 'Shop';
+      let previousHolder = '';
+      let notify = false;
+
+      if (s.action === 'Load into van'){
+        to = 'Van';
+        locationType = 'Van';
+      } else if (s.action === 'Drop off at site'){
+        to = s.site;
+        locationType = 'Site';
+        from = 'Van'; // assuming they just came from van
+      } else if (s.action === 'Loan to teammate'){
+        from = s.whoami;
+        to = s.recipient;
+        heldBy = s.recipient;
+        previousHolder = s.whoami;
+        locationType = 'Site';
+        notify = false;
+      } else if (s.action === 'Pick back up'){
+        if (s.pickup === '__site'){ to = s.pickupSite; locationType = 'Site'; }
+        else if (s.pickup === 'Shop'){ to = 'Shop'; locationType = 'Shop'; }
+        else { to = 'Van'; locationType = 'Van'; }
+        from = 'Site';
+      } else if (s.action === 'Return to shop'){
+        to = 'Shop';
+        locationType = 'Shop';
+        heldBy = '';
+        from = 'Van';
+      }
+
+      const payload = {
+        itemId: id,
+        item: catEntry.item,
+        category: catEntry.category,
+        action: s.action,
+        from, to, heldBy, locationType,
+        notes: '',
+        previousHolder,
+        notify
+      };
+
+      // Fire the write - optimistic UI updates immediately
+      fetch(NFC_TX_URL, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      }).then(r => r.json()).then(data => {
+        if (data.ok){
+          row.classList.remove('pending');
+          const label = catEntry.item ? (catEntry.item + ' (' + id + ')') : id;
+          row.innerHTML = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#3fb27f" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><div class="rowText">' + label + ' &middot; ' + s.action + '</div>';
+          batchCount++;
+          document.getElementById('batchCounter').textContent = batchCount;
+          saveBatchSession();
+          if (navigator.vibrate) navigator.vibrate(50);
+        } else {
+          row.innerHTML = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><div class="rowText" style="color:#c0392b;">Failed: ' + id + '</div>';
+        }
+      }).catch(e => {
+        row.innerHTML = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><div class="rowText" style="color:#c0392b;">Network error: ' + id + '</div>';
+      });
+    }
+
+    // ===== PREWARM CACHE (fetch people + catalog once, cache for 30 min) =====
+    async function prewarmCache(){
+      const cachedPeople = readCache(CACHE_KEY_PEOPLE);
+      const cachedCatalog = readCache(CACHE_KEY_CATALOG);
+      if (cachedPeople && cachedCatalog) return;
+
+      // Use any ItemID to trigger a fetch that includes people + catalog
+      // Just use a dummy that won't match anything; we only care about the metadata
+      try {
+        const res = await fetch(NFC_STATUS_URL + '?id=DUMMY', { cache: 'no-store' });
+        const data = await res.json();
+        if (data.people) writeCache(CACHE_KEY_PEOPLE, data.people);
+        // Catalog: reconstruct from any items we can see. Actually the current API doesn\'t return the full catalog.
+        // For now, we can only cache the people list.
+      } catch(e){}
+    }
+
+    // ===== INIT =====
+    // Prewarm on load
+    prewarmCache();
+
+    // Check if batch mode was active from a previous scan
+    const savedBatch = loadBatchSession();
+    if (savedBatch){
+      batchMode = true;
+      batchSettings = savedBatch.settings;
+      batchCount = savedBatch.count || 0;
+      document.getElementById('batchToggle').checked = true;
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('batchSetup').style.display = 'none';
+      document.getElementById('batchActive').style.display = 'block';
+      // Populate the active screen
+      document.getElementById('batchActionLabel').textContent = batchSettings.action;
+      let details = 'by ' + batchSettings.whoami;
+      if (batchSettings.site) details += ' at ' + batchSettings.site;
+      if (batchSettings.recipient) details += ' -> ' + batchSettings.recipient;
+      document.getElementById('batchDetails').textContent = details;
+      document.getElementById('batchCounter').textContent = batchCount;
+
+      // If URL has an ItemID, immediately record it
+      const id = getIdFromUrl();
+      if (id){
+        recordBatchTap(id);
+      }
+    } else {
+      // Normal mode - load status card
+      loadStatus();
+    }
   </script>
 </body>
 </html>
