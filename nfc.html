@@ -151,9 +151,9 @@
     <!-- Batch mode selector -->
     <div class="batchBar" id="batchBar">
       <div class="modeSelect">
-        <button type="button" class="modeBtn active" data-mode="single" id="modeSingle">Single tap</button>
-        <button type="button" class="modeBtn" data-mode="quick" id="modeQuick">Quick batch</button>
-        <button type="button" class="modeBtn" data-mode="cart" id="modeCart">Review cart</button>
+        <button type="button" class="modeBtn" data-mode="single" id="modeSingle" style="display:none;">Single tap</button>
+        <button type="button" class="modeBtn" data-mode="quick" id="modeQuick" style="display:none;">Quick batch</button>
+        <button type="button" class="modeBtn active" data-mode="cart" id="modeCart">Review cart</button>
       </div>
       <div class="modeHelp" id="modeHelp">One tag at a time with full form</div>
     </div>
@@ -444,6 +444,8 @@
     const NFC_STATUS_URL   = "https://haggertybuilds.app.n8n.cloud/webhook/nfc-status";
     const NFC_TX_URL       = "https://haggertybuilds.app.n8n.cloud/webhook/nfc-transaction";
     const NFC_PEOPLE_URL   = "https://haggertybuilds.app.n8n.cloud/webhook/nfc-people";
+    const NFC_CATALOG_URL  = "https://haggertybuilds.app.n8n.cloud/webhook/nfc-catalog";
+    const NFC_BULK_URL     = "https://haggertybuilds.app.n8n.cloud/webhook/nfc-bulk-status";
 
     let currentState = null; // { itemId, item, category, currentHolder, currentLocation, currentLocationType, people }
     let t;
@@ -1096,6 +1098,11 @@
     function clearCart(){
       cart = [];
       saveCart();
+      // Batch was a separate store, which is how a cleared cart still showed
+      // a stale count. Clearing means clearing everything staged.
+      try { localStorage.removeItem(BATCH_KEY); } catch(e){}
+      batchSettings = null;
+      batchCount = 0;
       renderCart();
     }
 
@@ -1132,37 +1139,75 @@
     });
 
     async function addToCart(itemId){
-      const id = itemId.trim().toUpperCase();
-      // Prevent exact duplicates on same page load; allow re-add if item is completed and removed
-      // Look up item details from catalog cache
+      const id = String(itemId || '').trim().toUpperCase();
+      if (!id) return;
+
+      // Duplicate guard. A reload re-runs this with the same URL id,
+      // which is what was silently stacking repeat rows.
+      if (cart.some(c => c.id === id)){
+        toast(id + ' is already in the cart');
+        return;
+      }
+
       let item = '', category = '';
       const catalog = readCache(CACHE_KEY_CATALOG);
       if (catalog && catalog[id]){
         item = catalog[id].item;
         category = catalog[id].category;
-      } else {
-        // Fallback: fetch status to get item name (this is slower)
-        try {
-          const res = await fetch(NFC_STATUS_URL + '?id=' + encodeURIComponent(id), { cache: 'no-store' });
-          const data = await res.json();
-          if (data && data.ok){
-            item = data.item || '';
-            category = data.category || '';
-            // Update catalog cache
-            const cat = readCache(CACHE_KEY_CATALOG) || {};
-            cat[id] = { item, category };
-            writeCache(CACHE_KEY_CATALOG, cat);
-          }
-        } catch(e){}
       }
+
       cart.push({
         id, item, category,
         action: '', site: '', recipient: '', notify: false,
-        pickup: 'Van', pickupSite: '', notes: ''
+        pickup: 'Van', pickupSite: '', notes: '',
+        curHolder: '', curLocation: '', statusKnown: false
       });
       saveCart();
       renderCart();
       if (navigator.vibrate) navigator.vibrate(30);
+
+      // Name missing means the catalog cache was cold. Fill it in behind the scenes.
+      if (!item){
+        fetchCatalog().then(cat => {
+          if (!cat || !cat[id]) return;
+          const c = cart.find(x => x.id === id);
+          if (!c) return;
+          c.item = cat[id].item;
+          c.category = cat[id].category;
+          saveCart();
+          renderCart();
+        });
+      }
+
+      scheduleCartStatusRefresh();
+    }
+
+    // ===== BACKGROUND STATUS FOR STAGED ITEMS =====
+    // Debounced so tapping six tags in a row costs one call, not six.
+    let cartStatusTimer = null;
+    function scheduleCartStatusRefresh(){
+      if (cartStatusTimer) clearTimeout(cartStatusTimer);
+      cartStatusTimer = setTimeout(refreshCartStatus, 1500);
+    }
+
+    async function refreshCartStatus(){
+      if (!cart.length) return;
+      const ids = cart.map(c => c.id).join(',');
+      try {
+        const res = await fetch(NFC_BULK_URL + '?ids=' + encodeURIComponent(ids), { cache: 'no-store' });
+        const data = await res.json();
+        if (!data || !data.items) return;
+        cart.forEach(c => {
+          const s = data.items[c.id];
+          if (!s) return;
+          c.curHolder = s.currentHolder || '';
+          c.curLocation = s.currentLocation || 'Shop';
+          c.statusKnown = true;
+          if (!c.item && s.item) c.item = s.item;
+        });
+        saveCart();
+        renderCart();
+      } catch(e){}
     }
 
     function renderCart(){
@@ -1175,7 +1220,12 @@
         let actionDisplay = item.action || '<span class="actionMissing">Action needed</span>';
         if (item.action && item.site) actionDisplay += ' - ' + item.site;
         if (item.action && item.recipient) actionDisplay += ' - ' + item.recipient;
-        row.innerHTML = '<div class="cInfo"><div class="cName">' + name + '</div><div class="cId">' + item.id + '</div><div class="cAction">' + actionDisplay + '</div></div><div class="chevron"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>';
+        let nowLine = '';
+        if (item.statusKnown){
+          const where = item.curLocation || 'Shop';
+          nowLine = '<div class="cId">Now: ' + where + (item.curHolder ? ' &middot; ' + item.curHolder : '') + '</div>';
+        }
+        row.innerHTML = '<div class="cInfo"><div class="cName">' + name + '</div><div class="cId">' + item.id + '</div>' + nowLine + '<div class="cAction">' + actionDisplay + '</div></div><div class="chevron"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>';
         row.addEventListener('click', () => openEditSheet(idx));
         list.appendChild(row);
       });
@@ -1290,27 +1340,51 @@
       btn.disabled = true;
       btn.textContent = 'Committing...';
 
+      // One call resolves the real current state for everything staged.
+      // Without this the From column is a guess based on the action name.
+      let resolved = {};
+      try {
+        const ids = cart.map(i => i.id).join(',');
+        const rs = await fetch(NFC_BULK_URL + '?ids=' + encodeURIComponent(ids), { cache: 'no-store' });
+        const rd = await rs.json();
+        if (rd && rd.items) resolved = rd.items;
+      } catch(e){
+        toast('Could not verify current locations. Check your connection.');
+        btn.disabled = false;
+        btn.textContent = originalText;
+        return;
+      }
+
       let successCount = 0;
       let failCount = 0;
+      const committed = {};
 
       for (const item of cart){
-        // Build payload per item based on its action
-        let from = 'Shop', to = '', heldBy = whoami, locationType = 'Shop';
-        let previousHolder = '', notify = false;
+        // Backstop against a duplicate slipping through staging.
+        if (committed[item.id]) continue;
+        committed[item.id] = true;
+
+        const st = resolved[item.id] || {};
+        const realLocation = st.currentLocation || 'Shop';
+        const realHolder = st.currentHolder || '';
+
+        let from = realLocation, to = '', heldBy = whoami, locationType = 'Shop';
+        let previousHolder = realHolder, notify = false;
         if (item.action === 'Load into van'){
           to = 'Van'; locationType = 'Van';
         } else if (item.action === 'Drop off at site'){
-          to = item.site; locationType = 'Site'; from = 'Van';
+          to = item.site; locationType = 'Site';
         } else if (item.action === 'Loan to teammate'){
           from = whoami; to = item.recipient; heldBy = item.recipient;
-          previousHolder = whoami; locationType = 'Site';
+          previousHolder = whoami;
+          locationType = st.currentLocationType || 'Site';
+          notify = !!item.notify;
         } else if (item.action === 'Pick back up'){
           if (item.pickup === '__site'){ to = item.pickupSite; locationType = 'Site'; }
           else if (item.pickup === 'Shop'){ to = 'Shop'; locationType = 'Shop'; }
           else { to = 'Van'; locationType = 'Van'; }
-          from = 'Site';
         } else if (item.action === 'Return to shop'){
-          to = 'Shop'; locationType = 'Shop'; heldBy = ''; from = 'Van';
+          to = 'Shop'; locationType = 'Shop'; heldBy = '';
         }
         const payload = {
           itemId: item.id, item: item.item, category: item.category,
@@ -1356,12 +1430,23 @@
       return null;
     }
 
-    // ===== PREWARM CACHE (fetch people + catalog once, cache for 30 min) =====
+    // ===== CATALOG FETCH (dedicated endpoint, cached 12h) =====
+    async function fetchCatalog(){
+      try {
+        const res = await fetch(NFC_CATALOG_URL, { cache: 'no-store' });
+        const data = await res.json();
+        if (data && data.catalog){
+          writeCache(CACHE_KEY_CATALOG, data.catalog);
+          return data.catalog;
+        }
+      } catch(e){}
+      return null;
+    }
+
+    // ===== PREWARM CACHE =====
     async function prewarmCache(){
-      const cachedPeople = readCache(CACHE_KEY_PEOPLE);
-      if (!cachedPeople){
-        await fetchPeople();
-      }
+      if (!readCache(CACHE_KEY_PEOPLE)) fetchPeople();
+      if (!readCache(CACHE_KEY_CATALOG)) fetchCatalog();
     }
 
     // ===== HOME SCREEN TIP LOGIC =====
@@ -1445,21 +1530,15 @@
 
     // Determine initial mode: check for active batch first, then cart, then saved preference
     (function initMode(){
-      const savedBatch = loadBatchSession();
-      loadCart();
-      const savedMode = localStorage.getItem(MODE_KEY);
+      // One-time eviction. Phones that used Quick Tap still carry a batch store,
+      // and it used to outrank everything at boot even after a cart clear.
+      try { localStorage.removeItem(BATCH_KEY); } catch(e){}
+      batchSettings = null;
+      batchCount = 0;
 
-      if (savedBatch){
-        // Quick batch is in progress - resume it
-        setMode('quick', false);
-      } else if (cart.length > 0){
-        // Cart has items - go to cart mode
-        setMode('cart', false);
-      } else if (savedMode && ['single', 'quick', 'cart'].includes(savedMode)){
-        setMode(savedMode, false);
-      } else {
-        setMode('single', false);
-      }
+      loadCart();
+      // Cart is the only recording path now, so there is nothing to arbitrate.
+      setMode('cart', false);
     })();
   </script>
 </body>
