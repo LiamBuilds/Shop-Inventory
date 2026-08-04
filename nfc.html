@@ -455,25 +455,123 @@
       return (params.get('id') || '').trim().toUpperCase();
     }
 
+    // Fill the name + recipient dropdowns from a people array.
+    // Dedupes (the People tab has repeated rows) and preserves any current selection.
+    function populatePeopleDropdowns(people, excludeName){
+      const seen = {};
+      const clean = [];
+      (people || []).forEach(p => {
+        if (!p || !p.mitigationApproved || !p.name) return;
+        const k = p.name.trim().toLowerCase();
+        if (seen[k]) return;
+        seen[k] = 1;
+        clean.push({ name: p.name.trim() });
+      });
+      if (!clean.length) return;
+      clean.sort((a, b) => a.name.localeCompare(b.name));
+
+      const whoSel = document.getElementById('whoami');
+      const prevWho = whoSel.value;
+      whoSel.innerHTML = '<option value="" selected disabled>Pick your name</option>';
+      clean.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.name;
+        opt.textContent = p.name;
+        whoSel.appendChild(opt);
+      });
+      const wantWho = prevWho || localStorage.getItem('haggerty_nfc_lastuser') || '';
+      if (wantWho){
+        for (const opt of whoSel.options){
+          if (opt.value === wantWho){ whoSel.value = wantWho; break; }
+        }
+      }
+
+      const recSel = document.getElementById('recipient');
+      const prevRec = recSel.value;
+      const ex = (excludeName || '').trim().toLowerCase();
+      recSel.innerHTML = '<option value="" selected disabled>Pick teammate</option>';
+      clean.forEach(p => {
+        if (p.name.toLowerCase() === ex) return;
+        const opt = document.createElement('option');
+        opt.value = p.name;
+        opt.textContent = p.name;
+        recSel.appendChild(opt);
+      });
+      if (prevRec){
+        for (const opt of recSel.options){
+          if (opt.value === prevRec){ recSel.value = prevRec; break; }
+        }
+      }
+    }
+
+    // Show the form right away so the crew can pick a name while the unit status loads.
+    function renderShellNow(){
+      const id = getIdFromUrl();
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('mainForm').style.display = 'block';
+      document.getElementById('idBadge').textContent = id || 'NO ID';
+      document.getElementById('itemName').textContent = 'Loading unit\u2026';
+      document.getElementById('itemCat').textContent = '';
+      document.getElementById('curLoc').textContent = '\u2026';
+      document.getElementById('curHolder').textContent = '\u2026';
+      document.getElementById('lastAction').textContent = '\u2026';
+
+      const btn = document.getElementById('submit');
+      if (!btn.dataset.origText) btn.dataset.origText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Loading unit\u2026';
+
+      // Names come from the fast endpoint, never from the status call.
+      const cached = readCache(CACHE_KEY_PEOPLE);
+      if (cached && cached.length){
+        populatePeopleDropdowns(cached, '');
+        // Quietly refresh a stale roster without making anyone wait for it.
+        if (cacheAgeMinutes(CACHE_KEY_PEOPLE) > CACHE_REFRESH_AFTER_MINUTES){
+          fetchPeople().then(fresh => {
+            if (fresh && fresh.length){
+              populatePeopleDropdowns(fresh, (currentState && currentState.currentHolder) || '');
+            }
+          });
+        }
+      } else {
+        fetchPeople().then(fresh => {
+          if (fresh && fresh.length){
+            populatePeopleDropdowns(fresh, (currentState && currentState.currentHolder) || '');
+          }
+        });
+      }
+    }
+
     async function loadStatus(){
       const id = getIdFromUrl();
       if (!id){
+        document.getElementById('mainForm').style.display = 'none';
+        document.getElementById('loading').style.display = 'block';
         document.getElementById('loading').textContent = 'No ItemID in URL. This tag may not be programmed yet.';
         return;
       }
+      renderShellNow();
       try{
         const res = await fetch(NFC_STATUS_URL + '?id=' + encodeURIComponent(id), { cache:'no-store' });
         const data = await res.json();
         currentState = data;
         renderStatus();
       } catch(e){
-        document.getElementById('loading').textContent = 'Could not load status. Check your connection.';
+        const btn = document.getElementById('submit');
+        document.getElementById('itemName').textContent = 'Could not load unit';
+        document.getElementById('itemCat').textContent = 'Check your connection, then reload.';
+        btn.textContent = 'Unavailable';
+        btn.disabled = true;
       }
     }
 
     function renderStatus(){
+      const submitBtn = document.getElementById('submit');
       if (!currentState || !currentState.ok){
-        document.getElementById('loading').textContent = 'Unit not found in system.';
+        document.getElementById('itemName').textContent = 'Unit not found in system.';
+        document.getElementById('itemCat').textContent = 'This tag is not in the tracker yet.';
+        submitBtn.textContent = 'Unavailable';
+        submitBtn.disabled = true;
         return;
       }
       document.getElementById('loading').style.display = 'none';
@@ -497,40 +595,15 @@
         document.getElementById('lastAction').textContent = currentState.lastAction || '(none)';
       }
 
-      // Populate recipient dropdown - only mitigation-approved people
-      const recSel = document.getElementById('recipient');
-      recSel.innerHTML = '<option value="" selected disabled>Pick teammate</option>';
-      (currentState.people || []).forEach(p => {
-        if (p.mitigationApproved && p.name && p.name.toLowerCase() !== (currentState.currentHolder || '').toLowerCase()){
-          const opt = document.createElement('option');
-          opt.value = p.name;
-          opt.textContent = p.name;
-          recSel.appendChild(opt);
-        }
-      });
+      // Prefer the fast endpoint's clean roster. The status payload repeats rows,
+      // so it is only a fallback for when the fast call has not landed yet.
+      const cachedPeople = readCache(CACHE_KEY_PEOPLE);
+      const peopleSource = (cachedPeople && cachedPeople.length) ? cachedPeople : (currentState.people || []);
+      populatePeopleDropdowns(peopleSource, currentState.currentHolder || '');
 
-      // Populate "Who are you?" dropdown - only mitigation-approved people
-      const whoSel = document.getElementById('whoami');
-      whoSel.innerHTML = '<option value="" selected disabled>Pick your name</option>';
-      (currentState.people || []).forEach(p => {
-        if (p.mitigationApproved){
-          const opt = document.createElement('option');
-          opt.value = p.name;
-          opt.textContent = p.name;
-          whoSel.appendChild(opt);
-        }
-      });
-      // Restore last-used name from localStorage if available
-      const lastName = localStorage.getItem('haggerty_nfc_lastuser');
-      if (lastName){
-        // Only if that name is still in the dropdown
-        for (const opt of whoSel.options){
-          if (opt.value === lastName){
-            whoSel.value = lastName;
-            break;
-          }
-        }
-      }
+      // Unit data is in, so recording is allowed again.
+      submitBtn.disabled = false;
+      submitBtn.textContent = submitBtn.dataset.origText || 'Record';
     }
 
     // Remember name choice across taps
@@ -687,18 +760,35 @@
     const CACHE_KEY_CATALOG = 'haggerty_nfc_catalog_v2';
     const CACHE_KEY_PEOPLE = 'haggerty_nfc_people_v2';
     const CACHE_MINUTES = 30;
+    // Per-key lifetimes. Roster and gear catalog change rarely, so hold them longer.
+    const CACHE_MINUTES_BY_KEY = {};
+    CACHE_MINUTES_BY_KEY[CACHE_KEY_PEOPLE]  = 720; // 12 hours
+    CACHE_MINUTES_BY_KEY[CACHE_KEY_CATALOG] = 720; // 12 hours
+    // Refresh quietly in the background once the cache is older than this.
+    const CACHE_REFRESH_AFTER_MINUTES = 60;
 
+    // localStorage, not sessionStorage: each NFC tap can open a fresh tab,
+    // which starts an empty session and would force a cold fetch every time.
     function readCache(key){
       try {
-        const raw = sessionStorage.getItem(key);
+        const raw = localStorage.getItem(key);
         if (!raw) return null;
         const obj = JSON.parse(raw);
-        if (Date.now() - (obj.t || 0) > CACHE_MINUTES * 60 * 1000) return null;
+        const mins = CACHE_MINUTES_BY_KEY[key] || CACHE_MINUTES;
+        if (Date.now() - (obj.t || 0) > mins * 60 * 1000) return null;
         return obj.d;
       } catch(e){ return null; }
     }
     function writeCache(key, data){
-      try { sessionStorage.setItem(key, JSON.stringify({ t: Date.now(), d: data })); } catch(e){}
+      try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), d: data })); } catch(e){}
+    }
+    function cacheAgeMinutes(key){
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return Infinity;
+        const obj = JSON.parse(raw);
+        return (Date.now() - (obj.t || 0)) / 60000;
+      } catch(e){ return Infinity; }
     }
 
     // ===== MODE MANAGEMENT =====
@@ -824,18 +914,26 @@
 
     // Session persistence
     const BATCH_KEY = 'haggerty_nfc_batch_active';
+    // localStorage so an in-progress batch survives a tap that opens a new tab.
+    // Stamped with a time so a forgotten batch does not resume days later.
+    const BATCH_MAX_AGE_MINUTES = 720; // 12 hours
     function saveBatchSession(){
       if (batchSettings){
-        sessionStorage.setItem(BATCH_KEY, JSON.stringify({ settings: batchSettings, count: batchCount }));
+        localStorage.setItem(BATCH_KEY, JSON.stringify({ settings: batchSettings, count: batchCount, t: Date.now() }));
       } else {
-        sessionStorage.removeItem(BATCH_KEY);
+        localStorage.removeItem(BATCH_KEY);
       }
     }
     function loadBatchSession(){
       try {
-        const raw = sessionStorage.getItem(BATCH_KEY);
+        const raw = localStorage.getItem(BATCH_KEY);
         if (!raw) return null;
-        return JSON.parse(raw);
+        const obj = JSON.parse(raw);
+        if (Date.now() - (obj.t || 0) > BATCH_MAX_AGE_MINUTES * 60 * 1000){
+          localStorage.removeItem(BATCH_KEY);
+          return null;
+        }
+        return obj;
       } catch(e){ return null; }
     }
 
@@ -894,7 +992,7 @@
       document.getElementById('batchToggle').checked = false;
       batchSettings = null;
       batchCount = 0;
-      sessionStorage.removeItem(BATCH_KEY);
+      localStorage.removeItem(BATCH_KEY);
       document.getElementById('batchActive').style.display = 'none';
       document.getElementById('batchSetup').style.display = 'none';
       loadStatus();
