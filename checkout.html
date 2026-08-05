@@ -320,6 +320,7 @@
   <script>
     // ---- Webhooks ----
     const GET_LISTS_URL    = "https://haggertybuilds.app.n8n.cloud/webhook/shop-lists";
+    const GET_SECTION_URL  = "https://haggertybuilds.app.n8n.cloud/webhook/shop-section";
     const CHECKOUT_WEBHOOK = "https://haggertybuilds.app.n8n.cloud/webhook/record-checkout";
     const MY_DECISIONS_URL = "https://haggertybuilds.app.n8n.cloud/webhook/my-decisions";
     // ------------------
@@ -339,7 +340,8 @@
 
     // -------- Data loading --------
     const CACHE_KEY = 'haggerty_shop_lists_v1';
-    const CACHE_MINUTES = 5;
+    const CACHE_MINUTES = 30;
+    const SECTION_CACHE_MINUTES = 30;
 
     function readCache() {
       try {
@@ -505,13 +507,22 @@
       return MITIGATION_CATEGORIES.includes(section);
     }
 
-    function goToForm(section){
+    async function goToForm(section){
       // Go straight to form. Approval logic is applied AFTER the person picks their name.
       activeCategory = section;
       document.getElementById('catName').textContent = section;
       document.getElementById('scanScreen').style.display = 'none';
       document.getElementById('formScreen').style.display = 'flex';
       stopScanner();
+
+      // Show loading state on tool dropdown while we fetch this section fast
+      const toolSel = document.getElementById('tool');
+      if (toolSel){
+        // Save original state
+        toolSel.innerHTML = '<option value="" selected disabled>Loading tools...</option>';
+      }
+      // Load this specific section's data (much faster than loading everything)
+      await loadSectionData(section);
       renderToolDropdown();
     }
 
