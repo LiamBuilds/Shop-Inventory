@@ -158,7 +158,7 @@
         document.getElementById('backBtn').classList.add('show');
       }
       loadDashboard();
-      setInterval(loadDashboard, 5 * 60 * 1000);
+      setInterval(() => loadDashboardFresh(true), 5 * 60 * 1000);
     }
 
     document.getElementById('backBtn').addEventListener('click', () => {
@@ -166,19 +166,73 @@
     });
     document.getElementById('refreshNow').addEventListener('click', (e) => {
       e.preventDefault();
-      loadDashboard();
+      // Manual refresh always fetches fresh (bypass cache)
+      const l = document.getElementById('loading');
+      const c = document.getElementById('content');
+      if (l && c){
+        // Show a subtle loading indicator on the refresh link
+        const link = document.getElementById('refreshNow');
+        const orig = link.textContent;
+        link.textContent = 'Refreshing...';
+        loadDashboardFresh(false).then(() => { link.textContent = orig; });
+      }
     });
 
     let currentData = null;
 
-    async function loadDashboard(){
+    const CACHE_KEY = 'haggerty_dashboard_cache_v1';
+    const CACHE_MINUTES = 5;
+
+    function readCache(){
+      try {
+        const raw = sessionStorage.getItem(CACHE_KEY);
+        if (!raw) return null;
+        const obj = JSON.parse(raw);
+        if (Date.now() - (obj.t || 0) > CACHE_MINUTES * 60 * 1000) return null;
+        return obj.d;
+      } catch(e){ return null; }
+    }
+    function writeCache(data){
+      try {
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), d: data }));
+      } catch(e){}
+    }
+
+    async function loadDashboard(useCacheFirst){
+      // If useCacheFirst is true (default), try cache first for instant render
+      if (useCacheFirst !== false){
+        const cached = readCache();
+        if (cached){
+          currentData = cached;
+          render();
+          // Also fire a background refresh so data stays fresh
+          setTimeout(() => loadDashboardFresh(true), 100);
+          return;
+        }
+      }
+      await loadDashboardFresh(false);
+    }
+
+    async function loadDashboardFresh(silent){
       try {
         const res = await fetch(DATA_URL, { cache: 'no-store' });
         const data = await res.json();
         currentData = data;
-        render();
+        writeCache(data);
+        // Only re-render if we're not doing a silent background refresh
+        // OR if the loading screen is still showing (first load)
+        if (!silent || document.getElementById('loading').style.display !== 'none'){
+          render();
+        } else {
+          // Silent background refresh: update the "last updated" timestamp
+          const generated = new Date(data.generatedAt);
+          const el = document.getElementById('updated');
+          if (el) el.textContent = 'Last updated ' + generated.toLocaleTimeString();
+        }
       } catch(e){
-        document.getElementById('loading').textContent = 'Could not load data. Check your connection.';
+        if (!silent){
+          document.getElementById('loading').textContent = 'Could not load data. Check your connection.';
+        }
       }
     }
 
