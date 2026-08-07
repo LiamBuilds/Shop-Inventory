@@ -371,6 +371,41 @@
       renderToolDropdown();
     }
 
+    // Per-section cache (much faster than loading everything)
+    function readSectionCache(section){
+      try{
+        const raw = sessionStorage.getItem('haggerty_shop_section_' + section);
+        if(!raw) return null;
+        const obj = JSON.parse(raw);
+        if(Date.now() - (obj.savedAt||0) > SECTION_CACHE_MINUTES*60*1000) return null;
+        return obj.data;
+      } catch(e){ return null; }
+    }
+    function writeSectionCache(section, data){
+      try{ sessionStorage.setItem('haggerty_shop_section_' + section, JSON.stringify({savedAt: Date.now(), data})); } catch(e){}
+    }
+
+    async function loadSectionData(section){
+      // Try cache first
+      const cached = readSectionCache(section);
+      if (cached){
+        cachedData = { ...(cachedData || {}), tools: cached.tools, people: cached.people };
+        return cached;
+      }
+      try{
+        const res = await fetch(GET_SECTION_URL + '?section=' + encodeURIComponent(section), {cache:'no-store'});
+        const data = await res.json();
+        if (data && data.ok){
+          writeSectionCache(section, data);
+          cachedData = { ...(cachedData || {}), tools: data.tools, people: data.people };
+          return data;
+        }
+      } catch(e){
+        toast('Could not load section data');
+      }
+      return null;
+    }
+
     async function loadData() {
       // Instant fill from cache if available (5-minute freshness window)
       const cached = readCache();
