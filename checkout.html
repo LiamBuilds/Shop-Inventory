@@ -358,7 +358,12 @@
     }
 
     function fillDropdownsFromData(data) {
-      cachedData = data;
+      // Merge to preserve section tools loaded by loadSectionData
+      const existingTools = (cachedData && cachedData.tools) || [];
+      const incomingTools = data.tools || [];
+      // If incoming tools is empty but we have existing tools, keep them
+      const mergedTools = incomingTools.length > 0 ? incomingTools : existingTools;
+      cachedData = { ...data, tools: mergedTools };
       const nameSel = document.getElementById('name');
       const namePh = document.getElementById('namePlaceholder');
       if (namePh) namePh.remove();
