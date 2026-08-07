@@ -550,11 +550,11 @@
       document.getElementById('formScreen').style.display = 'flex';
       stopScanner();
 
-      // Show loading state on tool dropdown while we fetch this section fast
-      const toolSel = document.getElementById('tool');
-      if (toolSel){
-        // Save original state
-        toolSel.innerHTML = '<option value="" selected disabled>Loading tools...</option>';
+      // Show loading state on the VISIBLE tool search box
+      const toolSearch = document.getElementById('toolSearch');
+      if (toolSearch){
+        toolSearch.placeholder = 'Loading tools...';
+        toolSearch.disabled = true;
       }
       // Load this specific section's data (much faster than loading everything)
       await loadSectionData(section);
