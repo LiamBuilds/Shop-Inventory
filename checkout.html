@@ -319,15 +319,15 @@
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <script>
     // ---- Webhooks ----
-    const GET_LISTS_URL    = "https://haggertybuilds.app.n8n.cloud/webhook/shop-lists";
-    const GET_SECTION_URL  = "https://haggertybuilds.app.n8n.cloud/webhook/shop-section";
-    const CHECKOUT_WEBHOOK = "https://haggertybuilds.app.n8n.cloud/webhook/record-checkout";
-    const MY_DECISIONS_URL = "https://haggertybuilds.app.n8n.cloud/webhook/my-decisions";
+    const GET_LISTS_URL    = "https://haggertybuilds.app.n8n.cloud/webhook/sb-shop-lists";
+    const GET_SECTION_URL  = "https://haggertybuilds.app.n8n.cloud/webhook/sb-shop-section";
+    const CHECKOUT_WEBHOOK = "https://haggertybuilds.app.n8n.cloud/webhook/sb-record-checkout";
+    const MY_DECISIONS_URL = "https://haggertybuilds.app.n8n.cloud/webhook/sb-my-decisions";
     // ------------------
 
     // Known section names (in case the tools API doesn't have them yet)
-    const KNOWN_SECTIONS = ["Equipment","Ladders","Tools","Cleaning","Landscaping","Large Grey Bins","Pallets","Dehumidifiers","Air Movers","Scrubbers AFD"];
-
+    const KNOWN_SECTIONS = ["Equipment","Ladders","Tools","Cleaning","Landscaping","Large Grey Bins","Pallets","Dehumidifiers","Air Movers","Scrubbers AFD","Fans","Extractors"];
+    const MITIGATION_CATEGORIES = ['Dehumidifiers', 'Air Movers', 'Scrubbers AFD', 'Fans', 'Extractors'];
     let t;
     function toast(m){
       const el=document.getElementById('toast'); el.textContent=m; el.classList.add('show');
