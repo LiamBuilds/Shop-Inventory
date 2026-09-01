@@ -22,14 +22,12 @@
     font-family:"Calibri","Segoe UI",system-ui,-apple-system,Arial,sans-serif;
     min-height:100dvh; padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);}
   .wrap{max-width:460px; width:100%; margin:0 auto; padding:20px 22px 28px; display:flex; flex-direction:column; min-height:100dvh;}
-
   .top{display:flex; align-items:center; gap:12px; margin-bottom:18px;}
   .back{appearance:none; background:none; border:0; padding:8px; margin:-8px 0 -8px -8px; cursor:pointer; color:var(--paper); text-decoration:none; display:flex;}
   .mark{height:34px; width:auto;}
   .htitle{font-family:"Arial Narrow",Arial,sans-serif; font-weight:800; letter-spacing:.14em; text-transform:uppercase; font-size:17px;}
   .rule{height:6px; margin:0 0 26px; border-radius:4px;
     background:repeating-linear-gradient(135deg,var(--orange) 0 14px,#2b2b2b 14px 26px);}
-
   .lead{font-family:Georgia,serif; font-size:21px; margin:0 0 22px;}
   .field{margin-bottom:20px;}
   label{display:block; font-size:13px; font-weight:600; letter-spacing:.02em; color:var(--muted); text-transform:uppercase; margin-bottom:8px;}
@@ -38,7 +36,6 @@
   select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%239a9a9a' stroke-width='2'><path d='M5 8l5 5 5-5'/></svg>");
     background-repeat:no-repeat; background-position:right 14px center; padding-right:42px;}
   select:focus{outline:none; border-color:var(--orange);}
-
   .items{display:flex; flex-direction:column; gap:12px;}
   .item{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px;
     display:flex; justify-content:space-between; align-items:center; gap:12px;}
@@ -51,10 +48,8 @@
     background:var(--green); color:var(--ink); cursor:pointer; transition:transform .06s, background .15s; flex-shrink:0;}
   .ret:active{transform:scale(.95); background:var(--green-press);}
   .ret:disabled{opacity:.5; cursor:default;}
-
   .empty{text-align:center; color:var(--muted); padding:40px 20px; font-style:italic;}
   .empty.success{color:var(--green); font-style:normal;}
-
   .undoBar{position:fixed; left:50%; bottom:20px; transform:translateX(-50%); z-index:60;
     background:var(--card); border:1.5px solid var(--line); border-radius:14px;
     box-shadow:0 6px 20px rgba(0,0,0,.35); padding:12px 14px; display:none; align-items:center; gap:12px;
@@ -70,6 +65,47 @@
     opacity:0; pointer-events:none; transition:.25s; font-size:14px; max-width:90vw; text-align:center;}
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
   .toast.green{background:var(--green);}
+  /* Return accountability modal */
+  .returnModal{position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:80; display:none; align-items:center; justify-content:center; padding:20px; overflow-y:auto;}
+  .returnModal.show{display:flex;}
+  .returnModal .box{background:var(--bg); border:1.5px solid var(--line); border-radius:16px; padding:24px; max-width:420px; width:100%; margin:auto;}
+  .returnModal h3{font-family:Georgia,serif; font-size:20px; margin:0 0 18px; color:var(--paper);}
+  .returnModal .req{color:var(--orange); font-weight:700; margin-left:2px;}
+  .returnModal textarea{width:100%; background:var(--field); color:var(--paper); border:1.5px solid var(--line);
+    border-radius:12px; padding:14px 15px; font-size:16px; font-family:inherit; resize:vertical; min-height:64px;}
+  .returnModal textarea:focus{outline:none; border-color:var(--orange);}
+  .notesRow{display:flex; gap:10px; align-items:flex-start;}
+  .notesRow textarea{flex:1;}
+  .micBtn{appearance:none; background:var(--card); border:1.5px solid var(--line); color:var(--paper);
+    border-radius:12px; width:52px; height:52px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; flex-shrink:0; transition:all .15s;}
+  .micBtn:active{transform:scale(.95);}
+  .micBtn.recording{background:var(--orange); color:var(--ink); border-color:var(--orange); animation:pulse 1.4s infinite;}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(246,137,34,.5);} 50%{box-shadow:0 0 0 8px rgba(246,137,34,0);}}
+  .micStatus{margin-top:8px; padding:8px 12px; border-radius:8px; font-size:13px;
+    background:rgba(246,137,34,.10); color:var(--paper); border:1px solid rgba(246,137,34,.35);}
+  .micStatus.err{background:rgba(226,92,78,.10); border-color:rgba(226,92,78,.35);}
+  .photoBtn{appearance:none; width:100%; background:var(--card); border:1.5px dashed var(--line); color:var(--paper);
+    border-radius:12px; padding:16px; font-size:15px; font-weight:600; font-family:inherit; cursor:pointer;}
+  .photoPreviewWrap{display:flex; align-items:center; gap:12px;}
+  .photoPreviewWrap img{width:76px; height:76px; object-fit:cover; border-radius:10px; border:1.5px solid var(--line); flex-shrink:0;}
+  .photoRetake{appearance:none; background:transparent; border:1.5px solid var(--gray); color:var(--paper);
+    padding:10px 14px; border-radius:9px; font-size:13px; font-weight:600; font-family:inherit; cursor:pointer;}
+  .verifyBox{padding:12px 14px; border-radius:10px; font-size:14px; line-height:1.4;
+    background:rgba(154,154,154,.10); border:1px solid var(--line); color:var(--muted);}
+  .verifyBox.ok{background:rgba(63,178,127,.14); border-color:rgba(63,178,127,.5); color:var(--paper);}
+  .verifyBox.warn{background:rgba(226,92,78,.10); border-color:rgba(226,92,78,.4); color:var(--paper);}
+  .qrScanArea{margin-top:10px; border-radius:14px; overflow:hidden; background:#000; position:relative; aspect-ratio:1; max-width:220px;}
+  .qrScanArea video{width:100%; height:100%; object-fit:cover; display:block;}
+  .scanFallback{appearance:none; background:transparent; border:0; color:var(--orange); font-size:14px; font-family:inherit;
+    cursor:pointer; padding:8px 0; text-decoration:underline; margin-top:4px;}
+  .returnModal .buttons{display:flex; flex-direction:column; gap:10px; margin-top:20px;}
+  .returnModal button.continue{appearance:none; border:0; border-radius:12px; padding:15px; font-size:15px; font-weight:700;
+    font-family:inherit; cursor:pointer; background:var(--green); color:var(--ink);}
+  .returnModal button.continue:disabled{opacity:.5; cursor:default;}
+  .returnModal button.cancel{appearance:none; border:1.5px solid var(--gray); border-radius:12px; padding:15px; font-size:15px;
+    font-weight:600; font-family:inherit; cursor:pointer; background:transparent; color:var(--paper);}
+  .privacyNote{color:var(--muted); font-size:12px; line-height:1.5; text-align:center; margin-top:auto; padding-top:24px;}
 </style>
 </head>
 <body>
@@ -84,30 +120,69 @@
       <div class="htitle">Return</div>
     </div>
     <div class="rule"></div>
-
     <p class="lead">Return a tool</p>
-
     <div class="field">
       <label for="name">Your name</label>
       <select id="name">
         <option value="" selected disabled id="namePlaceholder">Loading…</option>
       </select>
     </div>
-
     <div id="itemsArea" style="display:none;">
       <label style="margin-bottom:12px;">What you have out</label>
       <div class="items" id="items"></div>
     </div>
-
     <div class="empty" id="emptyState" style="display:none;">Nothing checked out under that name.</div>
+    <p class="privacyNote">When you return a tool, we collect a photo, your notes, and your approximate location at the shop to confirm the check-in. This is only used for shop accountability and is shared with Ahren.</p>
   </main>
-
   <div class="undoBar" id="undoBar">
     <div class="msg" id="undoMsg"></div>
     <button class="undoBtn" id="undoBtn">Undo</button>
   </div>
   <div class="toast" id="toast"></div>
-
+  <!-- Return accountability modal: notes, photo, and GPS/QR verification are all required before a return is recorded -->
+  <div class="returnModal" id="returnModal">
+    <div class="box">
+      <h3>Confirm return</h3>
+      <div class="field">
+        <label for="returnNotes">Condition / notes <span class="req">*</span></label>
+        <div class="notesRow">
+          <textarea id="returnNotes" rows="2" placeholder="Any issues, damage, or details..." autocomplete="off"></textarea>
+          <button type="button" id="returnMicBtn" class="micBtn" aria-label="Record voice note">
+            <svg id="returnMicIcon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/>
+              <line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
+          </button>
+        </div>
+        <div id="returnMicStatus" class="micStatus" style="display:none;"></div>
+      </div>
+      <div class="field">
+        <label>Photo of the tool <span class="req">*</span></label>
+        <button type="button" class="photoBtn" id="photoBtn">Take a photo</button>
+        <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none;">
+        <div id="photoPreviewWrap" class="photoPreviewWrap" style="display:none;">
+          <img id="photoPreview" alt="Return photo preview">
+          <button type="button" class="photoRetake" id="photoRetake">Retake</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Location check <span class="req">*</span></label>
+        <div id="verifyStatus" class="verifyBox">Checking your location…</div>
+        <button type="button" class="scanFallback" id="qrFallbackBtn" style="display:none;">Scan the shop QR code instead</button>
+        <div id="qrScanArea" class="qrScanArea" style="display:none;">
+          <video id="returnScanVideo" playsinline muted autoplay></video>
+        </div>
+      </div>
+      <div class="buttons">
+        <button class="continue" id="confirmReturn" disabled>Confirm Return</button>
+        <button class="cancel" id="cancelReturn">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <!-- QR scanner library (jsQR - lightweight, no build step needed) -->
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <script>
     // ---- Webhook URLs ----
    const GET_LISTS_URL    = "https://haggertybuilds.app.n8n.cloud/webhook/sb-shop-lists";
@@ -116,7 +191,24 @@
    const UNDO_URL         = "https://haggertybuilds.app.n8n.cloud/webhook/sb-undo-return";
    const UNDO_WINDOW_MS   = 5 * 60 * 1000;
     // ----------------------
-
+    // ---- Supabase direct-upload (browser uploads the return photo straight to Storage) ----
+    const SUPABASE_URL       = "https://tdflgfuqjnwctadsjizz.supabase.co";
+    const SUPABASE_ANON_KEY  = "sb_publishable_w9xkQQE07152NL8faFVTwQ_LSJ9Hf_d";
+    const RETURN_PHOTO_BUCKET = "return-photos";
+    // ---- Shop geofence ----
+    const SHOP_LAT = 37.9715;
+    const SHOP_LNG = -121.2462;
+    const SHOP_RADIUS_METERS = 300;
+    // Static QR code posted at the shop as a backup when GPS is unavailable/denied/out of range
+    const SHOP_QR_VALUE = "HAGGERTY-SHOP-VERIFY";
+    function haversineMeters(lat1, lon1, lat2, lon2){
+      const R = 6371000;
+      const toRad = d => d * Math.PI / 180;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
     let t;
     function toast(m, green){
       const e=document.getElementById('toast');
@@ -126,7 +218,6 @@
       clearTimeout(t);
       t=setTimeout(()=>e.classList.remove('show'),2200);
     }
-
     // ---- UNDO SUPPORT ----
     let undoTimer = null;
     let undoCountdown = null;
@@ -135,7 +226,6 @@
       const msg = document.getElementById('undoMsg');
       const btn = document.getElementById('undoBtn');
       const expiresAt = Date.now() + UNDO_WINDOW_MS;
-
       function refresh(){
         const remaining = Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000));
         if (remaining <= 0) { hideUndoBar(); return; }
@@ -150,7 +240,6 @@
       btn.textContent = 'Undo';
       undoCountdown = setInterval(refresh, 1000);
       undoTimer = setTimeout(hideUndoBar, UNDO_WINDOW_MS);
-
       btn.onclick = async () => {
         if (btn.disabled) return;
         btn.disabled = true;
@@ -180,7 +269,6 @@
       if (undoTimer) { clearTimeout(undoTimer); undoTimer = null; }
       if (undoCountdown) { clearInterval(undoCountdown); undoCountdown = null; }
     }
-
     const fmt = d => {
       if(!d) return '';
       const dt = new Date(d);
@@ -195,7 +283,6 @@
       dt.setHours(0,0,0,0);
       return Math.round((dt - today) / 86400000);
     };
-
     // 5-minute cache — reused across checkout and return pages
     const CACHE_KEY = 'haggerty_shop_lists_v1';
     const CACHE_MINUTES = 5;
@@ -211,7 +298,6 @@
     function writeCache(data){
       try{ sessionStorage.setItem(CACHE_KEY, JSON.stringify({savedAt: Date.now(), data})); } catch(e){}
     }
-
     function fillNames(data){
       const sel = document.getElementById('name');
       const ph = document.getElementById('namePlaceholder');
@@ -225,7 +311,6 @@
         sel.appendChild(opt);
       });
     }
-
     async function loadPeople(){
       // Instant fill from cache if available
       const cached = readCache();
@@ -241,14 +326,12 @@
       }
     }
     loadPeople();
-
     // Load items when name selected
     document.getElementById('name').addEventListener('change', async (e) => {
       const person = e.target.value;
       if(!person) return;
       await loadItems(person);
     });
-
     async function loadItems(person){
       const itemsArea = document.getElementById('itemsArea');
       const emptyState = document.getElementById('emptyState');
@@ -256,7 +339,6 @@
       list.innerHTML = '<div class="empty">Loading…</div>';
       itemsArea.style.display = 'block';
       emptyState.style.display = 'none';
-
       try{
         const url = GET_MY_ITEMS_URL + '?person=' + encodeURIComponent(person);
         const res = await fetch(url, {cache:'no-store'});
@@ -266,26 +348,22 @@
         list.innerHTML = '<div class="empty">Could not load items. Try again.</div>';
       }
     }
-
     function renderItems(items){
       const list = document.getElementById('items');
       const itemsArea = document.getElementById('itemsArea');
       const emptyState = document.getElementById('emptyState');
-
       if(items.length === 0){
         itemsArea.style.display = 'none';
         emptyState.style.display = 'block';
         emptyState.classList.remove('success');
         return;
       }
-
       list.innerHTML = '';
       items.forEach(it => {
         const days = daysUntil(it.dueBack);
         const overdue = days !== null && days < 0;
         const card = document.createElement('div');
         card.className = 'item' + (overdue ? ' overdue' : '');
-
         let dueLabel = '';
         if(it.dueBack){
           if(overdue) dueLabel = 'Overdue · was due ' + fmt(it.dueBack);
@@ -295,7 +373,6 @@
         } else {
           dueLabel = 'No return date set';
         }
-
         card.innerHTML = `
           <div class="info">
             <div class="nm"></div>
@@ -305,51 +382,328 @@
         `;
         card.querySelector('.nm').textContent = it.item;
         card.querySelector('.meta').textContent = dueLabel;
-
         const btn = card.querySelector('.ret');
-        btn.addEventListener('click', async () => {
+        btn.addEventListener('click', () => {
           if(btn.disabled) return;
           if(window.__returning){ toast('Please wait…'); return; }
-          window.__returning = true;
-          // Disable ALL return buttons while this one processes
-          document.querySelectorAll('.ret').forEach(b => { b.disabled = true; });
-          btn.textContent = 'Returning…';
-          try{
-            const res = await fetch(RETURN_URL, {
-              method:'POST',
-              headers:{'Content-Type':'application/json'},
-              body: JSON.stringify({checkoutId: it.checkoutId})
-            });
-            if(!res.ok) throw new Error('bad response');
-            // Add a small delay so Excel's write fully commits before the next return can fire
-            await new Promise(r => setTimeout(r, 1200));
-            showUndoBar(it.item, it.checkoutId);
-            card.style.transition = 'opacity .3s, transform .3s';
-            card.style.opacity = '0';
-            card.style.transform = 'translateX(20px)';
-            setTimeout(() => {
-              card.remove();
-              if(list.children.length === 0){
-                itemsArea.style.display = 'none';
-                emptyState.style.display = 'block';
-                emptyState.classList.add('success');
-                emptyState.textContent = "All caught up. Nothing else to return.";
-              }
-              // Release the lock and re-enable the other Return buttons
-              window.__returning = false;
-              document.querySelectorAll('.ret').forEach(b => { b.disabled = false; });
-            }, 320);
-          } catch(e){
-            toast('Could not return, try again');
-            btn.textContent = 'Return';
-            window.__returning = false;
-            document.querySelectorAll('.ret').forEach(b => { b.disabled = false; });
-          }
+          openReturnModal({ item: it.item, checkoutId: it.checkoutId, card, btn, list, itemsArea, emptyState });
         });
-
         list.appendChild(card);
       });
     }
+    // Runs the shared post-return cleanup: undo bar, card removal, re-enabling other Return buttons
+    function completeReturn(ctx){
+      showUndoBar(ctx.item, ctx.checkoutId);
+      ctx.card.style.transition = 'opacity .3s, transform .3s';
+      ctx.card.style.opacity = '0';
+      ctx.card.style.transform = 'translateX(20px)';
+      setTimeout(() => {
+        ctx.card.remove();
+        if(ctx.list.children.length === 0){
+          ctx.itemsArea.style.display = 'none';
+          ctx.emptyState.style.display = 'block';
+          ctx.emptyState.classList.add('success');
+          ctx.emptyState.textContent = "All caught up. Nothing else to return.";
+        }
+        window.__returning = false;
+        document.querySelectorAll('.ret').forEach(b => { b.disabled = false; });
+      }, 320);
+    }
+    // ==================================================================
+    // Return accountability modal: mandatory notes, photo, and GPS/QR verification
+    // ==================================================================
+    let currentReturnCtx = null;
+    let returnPhotoFile = null;
+    let returnVerification = null; // { method: 'gps'|'qr', lat, lng }
+    let geoWatchActive = false;
+    function updateConfirmEnabled(){
+      const notes = document.getElementById('returnNotes').value.trim();
+      const btn = document.getElementById('confirmReturn');
+      btn.disabled = !(notes && returnPhotoFile && returnVerification);
+    }
+    function resetReturnModalState(){
+      document.getElementById('returnNotes').value = '';
+      const ms = document.getElementById('returnMicStatus'); ms.style.display = 'none'; ms.classList.remove('err');
+      returnPhotoFile = null;
+      document.getElementById('photoInput').value = '';
+      document.getElementById('photoPreviewWrap').style.display = 'none';
+      document.getElementById('photoBtn').style.display = 'block';
+      returnVerification = null;
+      const vs = document.getElementById('verifyStatus');
+      vs.className = 'verifyBox';
+      vs.textContent = 'Checking your location…';
+      document.getElementById('qrFallbackBtn').style.display = 'none';
+      stopQrFallbackScanner();
+      updateConfirmEnabled();
+    }
+    function openReturnModal(ctx){
+      currentReturnCtx = ctx;
+      resetReturnModalState();
+      document.getElementById('returnModal').classList.add('show');
+      startGeoCheck();
+    }
+    function closeReturnModal(){
+      document.getElementById('returnModal').classList.remove('show');
+      stopQrFallbackScanner();
+      currentReturnCtx = null;
+    }
+    // ---- GPS geofence check ----
+    function startGeoCheck(){
+      const vs = document.getElementById('verifyStatus');
+      const qrBtn = document.getElementById('qrFallbackBtn');
+      if(!('geolocation' in navigator)){
+        vs.className = 'verifyBox warn';
+        vs.textContent = "Your browser can't check location here.";
+        qrBtn.style.display = 'block';
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude, lng = pos.coords.longitude;
+          const dist = haversineMeters(lat, lng, SHOP_LAT, SHOP_LNG);
+          if(dist <= SHOP_RADIUS_METERS){
+            returnVerification = { method: 'gps', lat, lng };
+            vs.className = 'verifyBox ok';
+            vs.textContent = "You're at the shop. Location verified.";
+            qrBtn.style.display = 'none';
+            stopQrFallbackScanner();
+          } else {
+            vs.className = 'verifyBox warn';
+            vs.textContent = "Doesn't look like you're at the shop. Scan the QR code posted there instead.";
+            qrBtn.style.display = 'block';
+          }
+          updateConfirmEnabled();
+        },
+        () => {
+          vs.className = 'verifyBox warn';
+          vs.textContent = "Couldn't get your location. Scan the QR code at the shop instead.";
+          qrBtn.style.display = 'block';
+          updateConfirmEnabled();
+        },
+        { timeout: 8000, maximumAge: 60000 }
+      );
+    }
+    // ---- QR fallback scanner (reuses the same lightweight jsQR approach as checkout) ----
+    let qrStream = null;
+    let qrScannerRunning = false;
+    const qrCanvas = document.createElement('canvas');
+    const qrCtx = qrCanvas.getContext('2d');
+    async function startQrFallbackScanner(){
+      const area = document.getElementById('qrScanArea');
+      const video = document.getElementById('returnScanVideo');
+      try{
+        qrStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+        video.srcObject = qrStream;
+        await video.play();
+        area.style.display = 'block';
+        qrScannerRunning = true;
+        requestAnimationFrame(qrScanTick);
+      } catch(e){
+        toast('Could not open camera for QR scan');
+      }
+    }
+    function stopQrFallbackScanner(){
+      qrScannerRunning = false;
+      document.getElementById('qrScanArea').style.display = 'none';
+      if(qrStream){ qrStream.getTracks().forEach(t => t.stop()); qrStream = null; }
+    }
+    function qrScanTick(){
+      if(!qrScannerRunning) return;
+      const video = document.getElementById('returnScanVideo');
+      if(video.readyState === video.HAVE_ENOUGH_DATA){
+        qrCanvas.width = video.videoWidth;
+        qrCanvas.height = video.videoHeight;
+        qrCtx.drawImage(video, 0, 0, qrCanvas.width, qrCanvas.height);
+        try{
+          const imgData = qrCtx.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
+          const code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'dontInvert' });
+          if(code && code.data && code.data.trim().toUpperCase() === SHOP_QR_VALUE){
+            returnVerification = { method: 'qr' };
+            const vs = document.getElementById('verifyStatus');
+            vs.className = 'verifyBox ok';
+            vs.textContent = 'Shop QR code scanned. Location verified.';
+            document.getElementById('qrFallbackBtn').style.display = 'none';
+            stopQrFallbackScanner();
+            updateConfirmEnabled();
+            return;
+          }
+        } catch(e){ /* keep trying */ }
+      }
+      requestAnimationFrame(qrScanTick);
+    }
+    document.getElementById('qrFallbackBtn').addEventListener('click', () => {
+      if(qrScannerRunning) return;
+      startQrFallbackScanner();
+    });
+    // ---- Photo capture ----
+    document.getElementById('photoBtn').addEventListener('click', () => {
+      document.getElementById('photoInput').click();
+    });
+    document.getElementById('photoInput').addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if(!file) return;
+      returnPhotoFile = file;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        document.getElementById('photoPreview').src = ev.target.result;
+        document.getElementById('photoPreviewWrap').style.display = 'flex';
+        document.getElementById('photoBtn').style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+      updateConfirmEnabled();
+    });
+    document.getElementById('photoRetake').addEventListener('click', () => {
+      returnPhotoFile = null;
+      document.getElementById('photoInput').value = '';
+      document.getElementById('photoPreviewWrap').style.display = 'none';
+      document.getElementById('photoBtn').style.display = 'block';
+      updateConfirmEnabled();
+    });
+    document.getElementById('returnNotes').addEventListener('input', updateConfirmEnabled);
+    document.getElementById('cancelReturn').addEventListener('click', closeReturnModal);
+    document.getElementById('returnModal').addEventListener('click', (e) => {
+      if(e.target.id === 'returnModal') closeReturnModal();
+    });
+    // ---- Upload the photo straight to Supabase Storage from the browser ----
+    async function uploadReturnPhoto(file, checkoutId){
+      const ext = (file.name && file.name.includes('.')) ? file.name.split('.').pop() : (file.type.split('/')[1] || 'jpg');
+      const path = checkoutId.replace(/[^a-zA-Z0-9-_]/g,'') + '-' + Date.now() + '.' + ext;
+      const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${RETURN_PHOTO_BUCKET}/${path}`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+          'Content-Type': file.type || 'image/jpeg'
+        },
+        body: file
+      });
+      if(!res.ok) throw new Error('photo upload failed');
+      return path;
+    }
+    // ---- Confirm Return ----
+    document.getElementById('confirmReturn').addEventListener('click', async () => {
+      const ctx = currentReturnCtx;
+      if(!ctx) return;
+      const btn = document.getElementById('confirmReturn');
+      const notes = document.getElementById('returnNotes').value.trim();
+      if(!notes || !returnPhotoFile || !returnVerification){ updateConfirmEnabled(); return; }
+      window.__returning = true;
+      btn.disabled = true;
+      btn.textContent = 'Uploading photo…';
+      try{
+        const photoPath = await uploadReturnPhoto(returnPhotoFile, ctx.checkoutId);
+        btn.textContent = 'Returning…';
+        const res = await fetch(RETURN_URL, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            checkoutId: ctx.checkoutId,
+            notes: notes,
+            photoPath: photoPath,
+            verificationMethod: returnVerification.method,
+            lat: returnVerification.lat != null ? returnVerification.lat : null,
+            lng: returnVerification.lng != null ? returnVerification.lng : null
+          })
+        });
+        const data = await res.json().catch(() => null);
+        if(!res.ok || (data && data.ok === false)){
+          const msg = (data && data.message) ? data.message : 'Could not return, try again';
+          toast(msg);
+          btn.disabled = false;
+          btn.textContent = 'Confirm Return';
+          window.__returning = false;
+          return;
+        }
+        // Small delay so the write fully commits before the next return can fire
+        await new Promise(r => setTimeout(r, 1200));
+        closeReturnModal();
+        document.querySelectorAll('.ret').forEach(b => { b.disabled = true; });
+        completeReturn(ctx);
+        btn.disabled = false;
+        btn.textContent = 'Confirm Return';
+      } catch(e){
+        toast('Could not return, try again');
+        btn.disabled = false;
+        btn.textContent = 'Confirm Return';
+        window.__returning = false;
+      }
+    });
+    // ---- Voice notes for the return modal (Web Speech API), same pattern as checkout ----
+    (function setupReturnMic(){
+      const btn = document.getElementById('returnMicBtn');
+      const notes = document.getElementById('returnNotes');
+      const status = document.getElementById('returnMicStatus');
+      if(!btn || !notes) return;
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if(!SpeechRecognition){
+        btn.disabled = true;
+        btn.style.opacity = 0.4;
+        btn.title = "Voice notes not supported on this browser";
+        return;
+      }
+      let recognition = null;
+      let isRecording = false;
+      let sessionBase = "";
+      let finalTranscript = "";
+      function startRecording(){
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+        sessionBase = notes.value ? notes.value.trim() + " " : "";
+        finalTranscript = "";
+        recognition.onresult = (event) => {
+          let interim = "";
+          for(let i = event.resultIndex; i < event.results.length; i++){
+            const chunk = event.results[i][0].transcript;
+            if(event.results[i].isFinal) finalTranscript += chunk + " ";
+            else interim += chunk;
+          }
+          notes.value = (sessionBase + finalTranscript + interim).trim();
+          updateConfirmEnabled();
+        };
+        recognition.onerror = (e) => {
+          status.textContent = "Mic error: " + e.error + ". You can still type.";
+          status.style.display = "block";
+          status.classList.add("err");
+          stopRecording(true);
+        };
+        recognition.onend = () => {
+          if(isRecording){
+            try{ recognition.start(); } catch(e){ stopRecording(true); }
+          }
+        };
+        try{
+          recognition.start();
+          isRecording = true;
+          btn.classList.add("recording");
+          status.classList.remove("err");
+          status.textContent = "Recording... tap the mic again to stop.";
+          status.style.display = "block";
+        } catch(e){
+          status.textContent = "Could not start mic. Check permissions.";
+          status.classList.add("err");
+          status.style.display = "block";
+        }
+      }
+      function stopRecording(errored){
+        isRecording = false;
+        btn.classList.remove("recording");
+        if(recognition){ try{ recognition.stop(); } catch(e){} recognition = null; }
+        if(!errored){
+          if(notes.value.trim()){
+            status.textContent = "Recorded. Edit above if needed.";
+            status.style.display = "block";
+          } else {
+            status.style.display = "none";
+          }
+        }
+      }
+      btn.addEventListener("click", () => {
+        if(isRecording) stopRecording(false);
+        else startRecording();
+      });
+    })();
   </script>
 </body>
 </html>

@@ -22,17 +22,14 @@
     font-family:"Calibri","Segoe UI",system-ui,-apple-system,Arial,sans-serif;
     min-height:100dvh; padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);}
   .wrap{max-width:460px; width:100%; margin:0 auto; padding:20px 22px 28px; display:flex; flex-direction:column; min-height:100dvh;}
-
   .top{display:flex; align-items:center; gap:12px; margin-bottom:18px;}
   .back{appearance:none; background:none; border:0; padding:8px; margin:-8px 0 -8px -8px; cursor:pointer; color:var(--paper); text-decoration:none; display:flex;}
   .mark{height:34px; width:auto;}
   .htitle{font-family:"Arial Narrow",Arial,sans-serif; font-weight:800; letter-spacing:.14em; text-transform:uppercase; font-size:17px;}
   .rule{height:6px; margin:0 0 26px; border-radius:4px;
     background:repeating-linear-gradient(135deg,var(--orange) 0 14px,#2b2b2b 14px 26px);}
-
   .lead{font-family:Georgia,serif; font-size:21px; margin:0 0 22px;}
   .sub{color:var(--muted); font-size:14px; margin:-16px 0 22px;}
-
   /* Scan screen */
   .scanArea{display:flex; flex-direction:column; align-items:center; gap:20px; flex:1;}
   .scanFrame{width:100%; aspect-ratio:1; max-width:340px; border-radius:20px; overflow:hidden; background:#000; position:relative; border:2px solid var(--line);}
@@ -46,13 +43,11 @@
   .scanHint b{color:var(--paper); font-weight:600;}
   .scanFallback{appearance:none; background:transparent; border:0; color:var(--orange); font-size:14px; font-family:inherit;
     cursor:pointer; padding:8px; text-decoration:underline; margin-top:4px;}
-
   .permBox{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px; text-align:center;}
   .permBox h3{margin:0 0 8px; font-family:Georgia,serif; font-size:19px; color:var(--paper);}
   .permBox p{margin:0 0 16px; color:var(--muted); font-size:14px; line-height:1.45;}
   .permBox .btn{width:100%; padding:14px; border-radius:12px; background:var(--orange); color:var(--ink); border:0;
     font-size:16px; font-weight:700; font-family:inherit; cursor:pointer;}
-
   /* Form screen */
   .catBadge{display:flex; align-items:center; justify-content:space-between; gap:12px;
     background:rgba(246,137,34,.10); border:1px solid rgba(246,137,34,.35); border-radius:12px;
@@ -62,7 +57,6 @@
   .catValue{font-size:16px; font-weight:600; color:var(--paper); word-wrap:break-word;}
   .catChange{appearance:none; background:transparent; border:1.5px solid var(--gray); color:var(--paper);
     padding:8px 14px; border-radius:9px; font-size:13px; font-weight:600; font-family:inherit; cursor:pointer; flex-shrink:0;}
-
   .field{margin-bottom:20px;}
   label{display:block; font-size:13px; font-weight:600; letter-spacing:.02em; color:var(--muted); text-transform:uppercase; margin-bottom:8px;}
   select,input{width:100%; appearance:none; background:var(--field); color:var(--paper);
@@ -70,12 +64,10 @@
   select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%239a9a9a' stroke-width='2'><path d='M5 8l5 5 5-5'/></svg>");
     background-repeat:no-repeat; background-position:right 14px center; padding-right:42px;}
   select:focus, input:focus{outline:none; border-color:var(--orange);}
-
   .submit{appearance:none; border:0; border-radius:16px; padding:22px; font-size:19px; font-weight:700; font-family:inherit;
     background:var(--orange); color:var(--ink); cursor:pointer; width:100%; margin-top:6px; transition:transform .06s, background .15s;}
   .submit:active{transform:scale(.985); background:var(--orange-press);}
   .submit:disabled{opacity:.7; cursor:default;}
-
   /* Mitigation warning modal */
   .mitigWarn{position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:80; display:none; align-items:center; justify-content:center; padding:20px;}
   .mitigWarn.show{display:flex;}
@@ -93,7 +85,6 @@
   .mitigWarn button{appearance:none; border:0; border-radius:12px; padding:14px; font-size:15px; font-weight:600; font-family:inherit; cursor:pointer;}
   .mitigWarn .continue{background:var(--orange); color:var(--ink);}
   .mitigWarn .cancel{background:transparent; border:1.5px solid var(--gray); color:var(--paper);}
-
   /* Decision banner - shown at top when Alice has decided */
   .decisionBar{margin:0 0 20px; padding:14px 16px; border-radius:12px; display:none; align-items:flex-start; gap:12px;}
   .decisionBar.show{display:flex;}
@@ -102,14 +93,12 @@
   .decisionBar .body{flex:1; font-size:14px; color:var(--paper); line-height:1.4;}
   .decisionBar .body b{font-weight:700;}
   .decisionBar .close{appearance:none; background:transparent; border:0; color:var(--muted); font-size:22px; cursor:pointer; padding:0; margin:-4px; line-height:1;}
-
   /* Justification field */
   .justField{border:1.5px dashed rgba(246,137,34,.6);}
   .justNotice{background:rgba(246,137,34,.10); border:1px solid rgba(246,137,34,.35); border-radius:10px;
     padding:12px 14px; margin-bottom:12px; color:var(--paper); font-size:13px; line-height:1.4;}
   .justNotice b{color:var(--orange);}
   .justHint{color:var(--muted); font-size:12px; margin-top:6px; line-height:1.4;}
-
   /* Manual category picker overlay */
   .catOverlay{position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:50;
     display:none; align-items:flex-end; justify-content:center; padding:0;}
@@ -123,7 +112,6 @@
   .catBtn{appearance:none; background:var(--card); color:var(--paper); border:1.5px solid var(--line);
     border-radius:12px; padding:16px; font-size:16px; font-family:inherit; text-align:left; cursor:pointer;}
   .catBtn.active{border-color:var(--orange); background:rgba(246,137,34,.10);}
-
   /* Confirmation screen */
   .done{display:none; flex-direction:column; align-items:center; text-align:center; flex:1; justify-content:center; padding:20px 0;}
   .done.show{display:flex;}
@@ -136,7 +124,6 @@
     border-radius:14px; padding:18px; font-size:17px; font-weight:600; font-family:inherit; cursor:pointer; text-decoration:none; text-align:center;}
   .solid{appearance:none; border:0; background:var(--orange); color:var(--ink);
     border-radius:14px; padding:18px; font-size:17px; font-weight:700; font-family:inherit; cursor:pointer; text-decoration:none; text-align:center;}
-
   .req{color:var(--orange); font-weight:700; margin-left:2px;}
   textarea{width:100%; appearance:none; background:var(--field); color:var(--paper);
     border:1.5px solid var(--line); border-radius:12px; padding:14px 15px; font-size:16px; font-family:inherit;
@@ -180,18 +167,15 @@
       <span class="htitle">Check Out</span>
     </div>
     <div class="rule"></div>
-
     <!-- Decision banner - shown when Alice has approved/denied a pending request -->
     <div id="decisionBar" class="decisionBar">
       <div class="body" id="decisionBody"></div>
       <button class="close" id="decisionClose" aria-label="Dismiss">&times;</button>
     </div>
-
     <!-- SCAN SCREEN -->
     <div id="scanScreen">
       <p class="lead">Scan the section QR</p>
       <p class="sub">Point your camera at the QR code on the shelf.</p>
-
       <div class="scanArea">
         <div id="scanPermPrompt" class="permBox" style="display:none;">
           <h3>Camera needed</h3>
@@ -206,7 +190,6 @@
         <button type="button" class="scanFallback" id="manualPick">Or pick a section manually</button>
       </div>
     </div>
-
     <!-- FORM SCREEN -->
     <div id="formScreen" style="display:none; flex-direction:column; flex:1;">
       <div class="catBadge">
@@ -216,14 +199,12 @@
         </div>
         <button type="button" class="catChange" id="catChange">Change</button>
       </div>
-
       <div class="field">
         <label for="name">Your name</label>
         <select id="name">
           <option value="" selected disabled id="namePlaceholder">Loading…</option>
         </select>
       </div>
-
       <div class="field">
         <label for="toolSearch">Which tool</label>
         <input id="toolSearch" type="text" placeholder="Search or tap to browse" autocomplete="off" spellcheck="false">
@@ -234,12 +215,10 @@
           <button type="button" id="toolClear" aria-label="Clear selection">&times;</button>
         </div>
       </div>
-
       <div class="field">
         <label for="dest">Where's it going <span class="req">*</span></label>
         <input id="dest" type="text" placeholder="Job site or yard" autocomplete="off" required>
       </div>
-
 <div class="field">
         <label for="notes">Notes <span style="text-transform:none; font-weight:400; color:#777;">(optional)</span></label>
         <div class="notesRow">
@@ -255,21 +234,12 @@
         </div>
         <div id="micStatus" class="micStatus" style="display:none;"></div>
       </div>
-
       <div class="field">
-        <label for="dur">How long do you need it?</label>
-        <select id="dur">
-          <option value="0" selected>Back today</option>
-          <option value="1">1 day</option>
-          <option value="3">3 days</option>
-          <option value="7">1 week</option>
-          <option value="14">2 weeks</option>
-        </select>
+        <label for="dueDate">When will you bring it back? <span class="req">*</span></label>
+        <input id="dueDate" type="date" required>
       </div>
-
       <button class="submit" id="submit">Check Out Tool</button>
     </div>
-
     <!-- CONFIRMATION SCREEN -->
     <div class="done" id="doneScreen">
       <div class="check">
@@ -284,7 +254,6 @@
       </div>
     </div>
   </main>
-
   <!-- Category picker overlay -->
   <div class="catOverlay" id="catOverlay">
     <div class="catSheet">
@@ -297,7 +266,6 @@
       <div class="catList" id="catList"></div>
     </div>
   </div>
-
   <!-- Mitigation approval modal - shown after non-approved user taps Check Out -->
   <div class="mitigWarn" id="mitigWarn">
     <div class="box">
@@ -312,9 +280,7 @@
       </div>
     </div>
   </div>
-
   <div class="toast" id="toast"></div>
-
   <!-- QR scanner library (jsQR - lightweight, no build step needed) -->
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <script>
@@ -324,7 +290,6 @@
     const CHECKOUT_WEBHOOK = "https://haggertybuilds.app.n8n.cloud/webhook/sb-record-checkout";
     const MY_DECISIONS_URL = "https://haggertybuilds.app.n8n.cloud/webhook/sb-my-decisions";
     // ------------------
-
     // Known section names (in case the tools API doesn't have them yet)
     const KNOWN_SECTIONS = ["Equipment","Ladders","Tools","Cleaning","Landscaping","Large Grey Bins","Pallets","Dehumidifiers","Air Movers","Scrubbers AFD","Fans","Extractors"];
     const MITIGATION_CATEGORIES = ['Dehumidifiers', 'Air Movers', 'Scrubbers AFD', 'Fans', 'Extractors'];
@@ -334,15 +299,12 @@
       clearTimeout(t); t=setTimeout(()=>el.classList.remove('show'),1800);
     }
     const fmt = d => d.toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric'});
-
     let cachedData = null;
     let activeCategory = "";
-
     // -------- Data loading --------
     const CACHE_KEY = 'haggerty_shop_lists_v1';
     const CACHE_MINUTES = 30;
     const SECTION_CACHE_MINUTES = 30;
-
     function readCache() {
       try {
         const raw = sessionStorage.getItem(CACHE_KEY);
@@ -356,7 +318,6 @@
     function writeCache(data) {
       try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ savedAt: Date.now(), data })); } catch(e) {}
     }
-
     function fillDropdownsFromData(data) {
       // Merge to preserve section tools loaded by loadSectionData
       const existingTools = (cachedData && cachedData.tools) || [];
@@ -375,7 +336,6 @@
       });
       renderToolDropdown();
     }
-
     // Per-section cache (much faster than loading everything)
     function readSectionCache(section){
       try{
@@ -389,7 +349,6 @@
     function writeSectionCache(section, data){
       try{ sessionStorage.setItem('haggerty_shop_section_' + section, JSON.stringify({savedAt: Date.now(), data})); } catch(e){}
     }
-
     async function loadSectionData(section){
       // Try cache first
       const cached = readSectionCache(section);
@@ -410,7 +369,6 @@
       }
       return null;
     }
-
     async function loadData() {
       // Instant fill from cache if available (5-minute freshness window)
       const cached = readCache();
@@ -427,7 +385,6 @@
         if (!cached) toast('Could not load list — refresh');
       }
     }
-
     // Check for Alice's decisions for the current person
     async function checkDecisions(personName){
       if (!personName) return;
@@ -457,7 +414,6 @@
         // Silent fail
       }
     }
-
     let categoryTools = [];
     function renderToolDropdown() {
       categoryTools = [];
@@ -465,20 +421,17 @@
       const results = document.getElementById('toolResults');
       const selectedBox = document.getElementById('toolSelected');
       const hiddenInput = document.getElementById('tool');
-
       if (!cachedData) return;
       const tools = cachedData.tools || [];
       categoryTools = activeCategory
         ? tools.filter(t => String(t.category||'').toLowerCase() === activeCategory.toLowerCase())
         : tools;
-
       // Reset selection when category changes
       hiddenInput.value = '';
       selectedBox.style.display = 'none';
       searchInput.style.display = 'block';
       searchInput.value = '';
       results.style.display = 'none';
-
       if (categoryTools.length === 0) {
         searchInput.placeholder = 'No tools in this section yet';
         searchInput.disabled = true;
@@ -487,7 +440,6 @@
         searchInput.disabled = false;
       }
     }
-
     function filterAndShowTools(query) {
       const results = document.getElementById('toolResults');
       results.innerHTML = '';
@@ -513,7 +465,6 @@
       }
       results.style.display = 'block';
     }
-
     function selectTool(name) {
       const searchInput = document.getElementById('toolSearch');
       const results = document.getElementById('toolResults');
@@ -526,7 +477,6 @@
       searchInput.style.display = 'none';
       results.style.display = 'none';
     }
-
     function clearToolSelection() {
       const searchInput = document.getElementById('toolSearch');
       const selectedBox = document.getElementById('toolSelected');
@@ -537,16 +487,13 @@
       searchInput.value = '';
       searchInput.focus();
     }
-
     // -------- Screen management --------
     // Mitigation categories that require Alice's approval for non-approved users
      
     let pendingSection = null;
-
     function isMitigationCategory(section) {
       return MITIGATION_CATEGORIES.includes(section);
     }
-
     async function goToForm(section){
       // Go straight to form. Approval logic is applied AFTER the person picks their name.
       activeCategory = section;
@@ -554,7 +501,6 @@
       document.getElementById('scanScreen').style.display = 'none';
       document.getElementById('formScreen').style.display = 'flex';
       stopScanner();
-
       // Show loading state on the VISIBLE tool search box
       const toolSearch = document.getElementById('toolSearch');
       if (toolSearch){
@@ -565,18 +511,13 @@
       await loadSectionData(section);
       renderToolDropdown();
     }
-
     function proceedToForm(section){ goToForm(section); }
-
-
-
     function goToScan(){
       document.getElementById('formScreen').style.display = 'none';
       document.getElementById('doneScreen').classList.remove('show');
       document.getElementById('scanScreen').style.display = 'block';
       startScanner();
     }
-
     // -------- Manual picker --------
     function showManualPicker(){
       const overlay = document.getElementById('catOverlay');
@@ -599,17 +540,14 @@
       });
       overlay.classList.add('show');
     }
-
     // -------- QR Scanner --------
     let stream = null;
     let scannerRunning = false;
     const video = document.getElementById('scanVideo');
-
     async function startScanner(){
       const permPrompt = document.getElementById('scanPermPrompt');
       const frameWrap = document.getElementById('scanFrameWrap');
       const hint = document.getElementById('scanHint');
-
       try {
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'environment' },
@@ -629,7 +567,6 @@
         hint.style.display = 'none';
       }
     }
-
     function stopScanner(){
       scannerRunning = false;
       if (stream) {
@@ -637,10 +574,8 @@
         stream = null;
       }
     }
-
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-
     function scanTick(){
       if (!scannerRunning) return;
       if (video.readyState === video.HAVE_ENOUGH_DATA) {
@@ -666,12 +601,10 @@
       }
       requestAnimationFrame(scanTick);
     }
-
     // -------- Wiring --------
     document.getElementById('manualPick').addEventListener('click', showManualPicker);
     document.getElementById('permBtn').addEventListener('click', startScanner);
     document.getElementById('catChange').addEventListener('click', showManualPicker);
-
     // Mitigation approval modal buttons
     document.getElementById('mitigContinue').addEventListener('click', async () => {
       const justText = document.getElementById('modalJust').value.trim();
@@ -687,22 +620,20 @@
       const btn = document.getElementById('submit');
       btn.disabled = true;
       btn.textContent = 'Sending request...';
-
       const name = document.getElementById('name').value;
       const tool = document.getElementById('tool').value;
       const dest = document.getElementById('dest').value.trim();
       const notesText = document.getElementById('notes').value.trim();
-      const days = parseInt(document.getElementById('dur').value,10);
-      const due = new Date(); due.setDate(due.getDate()+days);
-
+      const dueDateStr = document.getElementById('dueDate').value;
+      const due = new Date(dueDateStr + 'T00:00:00');
+      const isToday = dueDateStr === new Date().toISOString().slice(0,10);
       const payload = {
         person: name, tool, destination: dest, notes: notesText,
         justification: justText,
-        dueDate: due.toISOString().slice(0,10),
+        dueDate: dueDateStr,
         checkedOutAt: new Date().toISOString(),
         section: activeCategory
       };
-
       const result = await doSubmit(payload);
       if (!result.ok) {
         btn.disabled = false;
@@ -716,7 +647,7 @@
         document.getElementById('doneMeta').textContent = 'You will get an email and see a banner in the app once she decides.';
       } else {
         document.getElementById('doneLine').innerHTML = '<b>'+tool+'</b> is now out to '+name+'.';
-        document.getElementById('doneMeta').textContent = (days===0?'Due back today':'Due back '+fmt(due)) + (dest?' \u00b7 '+dest:'');
+        document.getElementById('doneMeta').textContent = (isToday?'Due back today':'Due back '+fmt(due)) + (dest?' \u00b7 '+dest:'');
       }
       document.getElementById('formScreen').style.display = 'none';
       document.getElementById('doneScreen').classList.add('show');
@@ -727,12 +658,10 @@
     document.getElementById('mitigCancel').addEventListener('click', () => {
       document.getElementById('mitigWarn').classList.remove('show');
     });
-
     // Check for pending decisions when name changes
     document.getElementById('name').addEventListener('change', () => {
       checkDecisions(document.getElementById('name').value);
     });
-
     // Dismiss decision banner
     document.getElementById('decisionClose').addEventListener('click', () => {
       const bar = document.getElementById('decisionBar');
@@ -746,7 +675,6 @@
       }
       bar.classList.remove('show');
     });
-
     // Tool search wiring
     const toolSearchEl = document.getElementById('toolSearch');
     toolSearchEl.addEventListener('focus', () => filterAndShowTools(toolSearchEl.value));
@@ -789,7 +717,6 @@
     document.getElementById('catOverlay').addEventListener('click', (e) => {
       if (e.target.id === 'catOverlay') e.currentTarget.classList.remove('show');
     });
-
     // Check if the current selection needs approval (mitigation category + person not approved)
     function currentNeedsApproval(){
       if (!isMitigationCategory(activeCategory)) return false;
@@ -801,7 +728,6 @@
       );
       return !(person && person.mitigationApproved);
     }
-
     // Do the actual submit given a payload
     async function doSubmit(payload){
       const btn = document.getElementById('submit');
@@ -815,7 +741,6 @@
       }
       return { ok: true, data: responseData };
     }
-
     // Submit
     let submitting = false;
     document.getElementById('submit').addEventListener('click', async () => {
@@ -824,11 +749,11 @@
       const name = document.getElementById('name').value;
       const tool = document.getElementById('tool').value;
       const dest = document.getElementById('dest').value.trim();
-      const days = parseInt(document.getElementById('dur').value,10);
+      const dueDateStr = document.getElementById('dueDate').value;
       if(!name){ toast("Pick your name"); return; }
       if(!tool){ toast("Pick a tool"); return; }
       if(!dest){ toast("Enter where it's going"); document.getElementById('dest').focus(); return; }
-
+      if(!dueDateStr){ toast("Pick a return date"); document.getElementById('dueDate').focus(); return; }
       // If mitigation category AND person is not approved, show the modal to collect justification
       if (currentNeedsApproval()) {
         document.getElementById('modalJust').value = '';
@@ -837,9 +762,10 @@
         return;
       }
       submitting = true; btn.disabled = true; btn.textContent = "Checking out…";
-      const due = new Date(); due.setDate(due.getDate()+days);
+      const due = new Date(dueDateStr + 'T00:00:00');
+      const isToday = dueDateStr === new Date().toISOString().slice(0,10);
       const notesText = document.getElementById('notes').value.trim();
-      const payload = { person:name, tool, destination:dest, notes:notesText, justification: '', dueDate:due.toISOString().slice(0,10), checkedOutAt:new Date().toISOString(), section:activeCategory };
+      const payload = { person:name, tool, destination:dest, notes:notesText, justification: '', dueDate:dueDateStr, checkedOutAt:new Date().toISOString(), section:activeCategory };
       let responseData = null;
       if (CHECKOUT_WEBHOOK) {
         try {
@@ -854,28 +780,33 @@
         document.getElementById('doneMeta').textContent = 'You\'ll get an email and see a banner in the app once she decides.';
       } else {
         document.getElementById('doneLine').innerHTML = '<b>'+tool+'</b> is now out to '+name+'.';
-        document.getElementById('doneMeta').textContent = (days===0?'Due back today':'Due back '+fmt(due)) + (dest?' \u00b7 '+dest:'');
+        document.getElementById('doneMeta').textContent = (isToday?'Due back today':'Due back '+fmt(due)) + (dest?' \u00b7 '+dest:'');
       }
       document.getElementById('formScreen').style.display = 'none';
       document.getElementById('doneScreen').classList.add('show');
       submitting = false; btn.disabled = false; btn.textContent = "Check Out Tool";
     });
-
     document.getElementById('another').addEventListener('click', () => {
       document.getElementById('name').selectedIndex = 0;
       const t = document.getElementById('tool'); if (t.tagName === 'SELECT') t.selectedIndex = 0; else t.value = '';
       document.getElementById('dest').value = '';
-      document.getElementById('dur').value = '0';
+      const dd = document.getElementById('dueDate'); if (dd) dd.value = new Date().toISOString().slice(0,10);
       const n = document.getElementById('notes'); if (n) n.value = '';
 const ms = document.getElementById('micStatus'); if (ms) ms.style.display = 'none';
       activeCategory = '';
       goToScan();
     });
-
     // Start
     loadData();
     startScanner();
-
+    // Default the due-date picker to today and prevent picking a date in the past
+    (function initDueDate(){
+      const dd = document.getElementById('dueDate');
+      if (!dd) return;
+      const todayStr = new Date().toISOString().slice(0,10);
+      dd.min = todayStr;
+      if (!dd.value) dd.value = todayStr;
+    })();
     // ---- VOICE NOTES (Web Speech API) ----
     (function setupMic(){
       const btn = document.getElementById('micBtn');
@@ -883,7 +814,6 @@ const ms = document.getElementById('micStatus'); if (ms) ms.style.display = 'non
       const status = document.getElementById('micStatus');
       const icon = document.getElementById('micIcon');
       if (!btn || !notes) return;
-
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) {
         btn.disabled = true;
@@ -891,12 +821,10 @@ const ms = document.getElementById('micStatus'); if (ms) ms.style.display = 'non
         btn.title = "Voice notes not supported on this browser";
         return;
       }
-
       let recognition = null;
       let isRecording = false;
       let sessionBase = ""; // text that was in the textarea before recording started
       let finalTranscript = "";
-
       function startRecording(){
         recognition = new SpeechRecognition();
         recognition.continuous = true;
@@ -904,7 +832,6 @@ const ms = document.getElementById('micStatus'); if (ms) ms.style.display = 'non
         recognition.lang = 'en-US';
         sessionBase = notes.value ? notes.value.trim() + " " : "";
         finalTranscript = "";
-
         recognition.onresult = (event) => {
           let interim = "";
           for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -955,7 +882,6 @@ const ms = document.getElementById('micStatus'); if (ms) ms.style.display = 'non
           }
         }
       }
-
       btn.addEventListener("click", () => {
         if (isRecording) stopRecording(false);
         else startRecording();

@@ -19,7 +19,6 @@
     font-family:"Calibri","Segoe UI",system-ui,-apple-system,Arial,sans-serif;
     padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);}
   .wrap{max-width:1200px; margin:0 auto; padding:22px 28px 40px;}
-
   .top{display:flex; align-items:center; gap:14px; margin-bottom:18px;}
   .back{appearance:none; background:transparent; border:0; color:var(--paper); padding:6px; margin:-6px 6px -6px -6px; cursor:pointer; display:none;}
   .back.show{display:inline-flex;}
@@ -29,12 +28,10 @@
   .userLabel b{color:var(--paper);}
   .rule{height:6px; margin:0 0 24px; border-radius:4px;
     background:repeating-linear-gradient(135deg,var(--orange) 0 14px,#2b2b2b 14px 26px);}
-
   h1{font-family:Georgia,serif; font-size:28px; margin:0 0 4px;}
   h2{font-family:Georgia,serif; font-size:20px; margin:0 0 12px;}
   h2 .count{color:var(--muted); font-weight:400; font-size:14px; margin-left:8px;}
   .updated{color:var(--muted); font-size:13px; margin-bottom:24px;}
-
   /* Landing tiles */
   .tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:18px; margin-bottom:32px;}
   .tile{background:var(--card); border:1.5px solid var(--line); border-radius:14px; padding:20px 22px; cursor:pointer; transition:transform .1s, border-color .15s; text-decoration:none; color:inherit; display:block;}
@@ -50,13 +47,11 @@
   .tileSub{color:var(--muted); font-size:12px; margin-top:2px;}
   .tile.hot .tileNum{color:var(--danger);}
   .tile.warn .tileNum{color:var(--amber);}
-
   /* Detail page: stats bar */
   .statsBar{display:flex; flex-wrap:wrap; gap:14px; margin-bottom:22px; padding-bottom:22px; border-bottom:1px solid var(--line);}
   .miniStat{color:var(--muted); font-size:13px;}
   .miniStat b{color:var(--paper); font-weight:700; font-size:16px; margin-right:4px;}
   .miniStat.hot b{color:var(--danger);}
-
   /* Search + filter bar */
   .searchBar{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px; align-items:center;}
   .searchBar input{flex:1; min-width:220px; background:var(--card); color:var(--paper); border:1.5px solid var(--line); border-radius:10px; padding:12px 14px; font-size:15px; font-family:inherit;}
@@ -64,7 +59,6 @@
   .chipRow{display:flex; flex-wrap:wrap; gap:8px;}
   .chip{appearance:none; background:var(--card); border:1.5px solid var(--line); color:var(--paper); border-radius:8px; padding:8px 12px; font-size:13px; font-family:inherit; cursor:pointer; font-weight:600;}
   .chip.active{background:var(--orange); color:var(--ink); border-color:var(--orange);}
-
   /* Tables */
   .tableWrap{overflow-x:auto; background:var(--card); border:1px solid var(--line); border-radius:12px; margin-bottom:22px;}
   .tableWrap.scroll{max-height:500px; overflow-y:auto;}
@@ -76,10 +70,8 @@
   tr:last-child td{border-bottom:0;}
   tr.overdue td:first-child{border-left:3px solid var(--danger);}
   tr.low td:first-child{border-left:3px solid var(--danger);}
-
   .catHeader{background:rgba(246,137,34,.10); border-top:1px solid rgba(246,137,34,.30);}
   .catHeader td{padding:12px 14px; color:var(--orange); font-size:12px; text-transform:uppercase; letter-spacing:.06em; font-weight:700;}
-
   .badge{display:inline-block; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; white-space:nowrap;}
   .b-shop{background:rgba(63,178,127,.20); color:#5ec99a;}
   .b-van{background:rgba(230,180,34,.20); color:var(--amber);}
@@ -87,10 +79,8 @@
   .b-late{background:var(--danger); color:#fff;}
   .b-low{background:rgba(200,60,60,.20); color:#e08a80;}
   .b-ok{background:rgba(63,178,127,.20); color:#5ec99a;}
-
   .empty{color:var(--muted); font-style:italic; padding:32px 20px; text-align:center; background:var(--card); border:1px solid var(--line); border-radius:12px; font-size:14px;}
   .empty small{display:block; margin-top:6px; font-style:normal;}
-
   /* Pending approval card */
   .pendCard{background:linear-gradient(135deg, rgba(246,137,34,.15), rgba(246,137,34,.05)); border:1px solid rgba(246,137,34,.5); border-radius:12px; padding:18px; margin-bottom:14px;}
   .pendCard .pTop{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap; gap:6px;}
@@ -103,7 +93,6 @@
   .pendCard .pBtn{display:inline-block; padding:12px 22px; text-decoration:none; border-radius:8px; font-weight:700; font-size:14px;}
   .pendCard .pApprove{background:var(--green); color:#fff;}
   .pendCard .pDeny{background:var(--danger); color:#fff;}
-
   .accessError{background:rgba(200,60,60,.14); border:1px solid rgba(200,60,60,.5); border-radius:12px; padding:22px; text-align:center; color:var(--paper); font-size:15px;}
   .loading{text-align:center; color:var(--muted); padding:60px 20px;}
   .refreshInfo{color:var(--muted); font-size:12px; text-align:center; padding:20px 0;}
@@ -121,13 +110,10 @@
       <span class="userLabel" id="userLabel"></span>
     </div>
     <div class="rule"></div>
-
     <div id="notAuth" class="accessError" style="display:none;">
       Access needed. Ask Liam for the correct link with your access code.
     </div>
-
     <div id="loading" class="loading">Loading dashboard...</div>
-
     <div id="content" style="display:none;">
       <h1 id="viewTitle"></h1>
       <div class="updated" id="updated"></div>
@@ -135,18 +121,14 @@
       <div class="refreshInfo">Auto-refreshes every 5 minutes &middot; <a href="#" id="refreshNow">Refresh now</a></div>
     </div>
   </main>
-
   <script>
     const DATA_URL = "https://haggertybuilds.app.n8n.cloud/webhook/sb-dashboard-data";
-
     function getParam(name){
       const params = new URLSearchParams(window.location.search);
       return (params.get(name) || '').toLowerCase().trim();
     }
-
     const user = getParam('u');
     const view = getParam('view') || 'home';
-
     // Access gate
     if (user !== 'ahren' && user !== 'alice'){
       document.getElementById('loading').style.display = 'none';
@@ -160,7 +142,6 @@
       loadDashboard();
       setInterval(() => loadDashboardFresh(true), 5 * 60 * 1000);
     }
-
     document.getElementById('backBtn').addEventListener('click', () => {
       window.location.href = 'dashboard.html?u=' + user;
     });
@@ -177,12 +158,9 @@
         loadDashboardFresh(false).then(() => { link.textContent = orig; });
       }
     });
-
     let currentData = null;
-
     const CACHE_KEY = 'haggerty_dashboard_cache_v1';
     const CACHE_MINUTES = 5;
-
     function readCache(){
       try {
         const raw = sessionStorage.getItem(CACHE_KEY);
@@ -197,7 +175,6 @@
         sessionStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), d: data }));
       } catch(e){}
     }
-
     async function loadDashboard(useCacheFirst){
       // If useCacheFirst is true (default), try cache first for instant render
       if (useCacheFirst !== false){
@@ -212,7 +189,6 @@
       }
       await loadDashboardFresh(false);
     }
-
     async function loadDashboardFresh(silent){
       try {
         const res = await fetch(DATA_URL, { cache: 'no-store' });
@@ -235,24 +211,19 @@
         }
       }
     }
-
     function render(){
       document.getElementById('loading').style.display = 'none';
       document.getElementById('content').style.display = 'block';
-
       const generated = new Date(currentData.generatedAt);
       document.getElementById('updated').textContent = 'Last updated ' + generated.toLocaleTimeString();
-
       const body = document.getElementById('body');
       body.innerHTML = '';
-
       if (user === 'ahren'){
         renderAhren(body);
       } else if (user === 'alice'){
         renderAlice(body);
       }
     }
-
     // ===== ALICE VIEWS =====
     function renderAlice(body){
       if (view === 'home') return renderAliceHome(body);
@@ -262,23 +233,18 @@
       if (view === 'activity') return renderActivityPage(body);
       renderAliceHome(body);
     }
-
     function renderAliceHome(body){
       document.getElementById('viewTitle').textContent = 'Mitigation Overview';
       const s = currentData.stats;
-
       const tiles = document.createElement('div');
       tiles.className = 'tiles';
-
       tiles.innerHTML = ''
         + tile('approvals', 'Waiting for approval', s.pendingCount, s.pendingCount === 0 ? 'nothing pending' : (s.pendingCount + ' waiting on you'), s.pendingCount > 0 ? 'hot' : '', iconApprovals())
         + tile('equipment', 'Equipment', s.mitTotal, s.mitInField + ' currently in the field', '', iconEquipment())
         + tile('contents', 'Contents', currentData.contents.length, s.lowStockCount + ' low', s.lowStockCount > 0 ? 'warn' : '', iconContents())
         + tile('activity', 'Recent activity', currentData.recentNFC.length, 'last 24 hours', '', iconActivity());
-
       body.appendChild(tiles);
     }
-
     function renderApprovalsPage(body){
       document.getElementById('viewTitle').textContent = 'Waiting for Approval';
       if (currentData.pending.length === 0){
@@ -289,11 +255,9 @@
       currentData.pending.forEach(p => wrap.appendChild(renderPendingCard(p)));
       body.appendChild(wrap);
     }
-
     function renderEquipmentPage(body){
       document.getElementById('viewTitle').textContent = 'Mitigation Equipment';
       const units = currentData.mitUnits || [];
-
       // Stats bar
       const s = currentData.stats;
       const stats = document.createElement('div');
@@ -307,12 +271,10 @@
         + '<div class="miniStat"><b>' + vanCount + '</b> in a van</div>'
         + '<div class="miniStat"><b>' + siteCount + '</b> at a site</div>';
       body.appendChild(stats);
-
       if (units.length === 0){
         body.appendChild(fromHtml('<div class="empty">No mitigation equipment in the system yet.<small>Add items to the Dehumidifiers, Air Movers, and Scrubbers AFD tabs in Excel.</small></div>'));
         return;
       }
-
       // Filter bar
       const filterState = { search: '', category: 'all', location: 'all' };
       const searchBar = document.createElement('div');
@@ -322,10 +284,8 @@
         + '<div class="chipRow" id="eqLoc"></div>'
         + '<div class="chipRow" id="eqCat"></div>';
       body.appendChild(searchBar);
-
       const locations = ['all', 'Shop', 'Van', 'Site'];
       const categories = ['all', ...Array.from(new Set(units.map(u => u.category).filter(Boolean)))];
-
       const locChip = document.getElementById('eqLoc');
       locations.forEach(loc => {
         const btn = document.createElement('button');
@@ -343,22 +303,18 @@
         catChip.appendChild(btn);
       });
       document.getElementById('eqSearch').addEventListener('input', (e) => { filterState.search = e.target.value.trim().toLowerCase(); refreshEquipment(); });
-
       // Table container
       const tableWrap = document.createElement('div');
       tableWrap.id = 'eqTable';
       body.appendChild(tableWrap);
-
       function refreshEquipment(){
         // Update active chip state
         document.querySelectorAll('#eqLoc .chip').forEach(c => c.classList.toggle('active', c.textContent === (filterState.location === 'all' ? 'All locations' : filterState.location)));
         document.querySelectorAll('#eqCat .chip').forEach(c => c.classList.toggle('active', c.textContent === (filterState.category === 'all' ? 'All types' : filterState.category)));
-
         let filtered = units;
         if (filterState.location !== 'all') filtered = filtered.filter(u => (u.locationType || 'Shop') === filterState.location);
         if (filterState.category !== 'all') filtered = filtered.filter(u => u.category === filterState.category);
         if (filterState.search) filtered = filtered.filter(u => (u.itemId + ' ' + u.item).toLowerCase().includes(filterState.search));
-
         if (filtered.length === 0){
           document.getElementById('eqTable').innerHTML = '<div class="empty">No units match your filters.</div>';
           return;
@@ -378,11 +334,9 @@
       }
       refreshEquipment();
     }
-
     function renderContentsPage(body){
       document.getElementById('viewTitle').textContent = 'Contents Inventory';
       const items = currentData.contents || [];
-
       // Stats bar
       const stats = document.createElement('div');
       stats.className = 'statsBar';
@@ -391,12 +345,10 @@
         + '<div class="miniStat"><b>' + items.length + '</b> items tracked</div>'
         + '<div class="miniStat ' + (lowCount > 0 ? 'hot' : '') + '"><b>' + lowCount + '</b> below threshold</div>';
       body.appendChild(stats);
-
       if (items.length === 0){
         body.appendChild(fromHtml('<div class="empty">No contents in the system yet.<small>Add items to the Contents tab in Excel with a name, quantity, and reorder threshold.</small></div>'));
         return;
       }
-
       // Filter bar
       const filterState = { search: '', category: 'all', lowOnly: false };
       const searchBar = document.createElement('div');
@@ -405,7 +357,6 @@
         + '<input id="ctSearch" type="text" placeholder="Search items..." autocomplete="off">'
         + '<div class="chipRow" id="ctFilters"></div>';
       body.appendChild(searchBar);
-
       const categories = Array.from(new Set(items.map(c => c.category).filter(Boolean)));
       const chipRow = document.getElementById('ctFilters');
       // "All" + "Low only" + each category
@@ -416,13 +367,10 @@
       categories.forEach(cat => {
         chipRow.appendChild(chipBtn(cat, () => { filterState.category = cat; refreshContents(); }));
       });
-
       document.getElementById('ctSearch').addEventListener('input', (e) => { filterState.search = e.target.value.trim().toLowerCase(); refreshContents(); });
-
       const container = document.createElement('div');
       container.id = 'ctBody';
       body.appendChild(container);
-
       function refreshContents(){
         document.querySelectorAll('#ctFilters .chip').forEach(c => {
           const label = c.textContent;
@@ -430,21 +378,17 @@
           else if (label === 'Low only') c.classList.toggle('active', filterState.lowOnly);
           else c.classList.toggle('active', label === filterState.category);
         });
-
         let filtered = items;
         if (filterState.lowOnly) filtered = filtered.filter(c => c.isLow);
         if (filterState.category !== 'all') filtered = filtered.filter(c => c.category === filterState.category);
         if (filterState.search) filtered = filtered.filter(c => c.item.toLowerCase().includes(filterState.search));
-
         if (filtered.length === 0){
           document.getElementById('ctBody').innerHTML = '<div class="empty">No items match your filters.</div>';
           return;
         }
-
         // Group by category if any items have one
         const hasCategories = filtered.some(c => c.category);
         let html = '<div class="tableWrap"><table><thead><tr><th>Item</th><th>On hand</th><th>Threshold</th><th>Status</th></tr></thead><tbody>';
-
         if (hasCategories){
           const byCategory = {};
           filtered.forEach(c => {
@@ -469,16 +413,13 @@
         }
         document.getElementById('ctBody').innerHTML = html;
       }
-
       function contentRow(c){
         const status = c.isLow ? '<span class="badge b-low">Reorder</span>' : '<span class="badge b-ok">OK</span>';
         const cls = c.isLow ? ' class="low"' : '';
         return '<tr' + cls + '><td><b>' + esc(c.item) + '</b></td><td>' + c.quantity + ' ' + esc(c.unit || '') + '</td><td>' + c.threshold + '</td><td>' + status + '</td></tr>';
       }
-
       refreshContents();
     }
-
     function renderActivityPage(body){
       document.getElementById('viewTitle').textContent = 'Recent Mitigation Activity';
       const events = currentData.recentNFC || [];
@@ -490,7 +431,6 @@
       stats.className = 'statsBar';
       stats.innerHTML = '<div class="miniStat"><b>' + events.length + '</b> events in last 24 hours</div>';
       body.appendChild(stats);
-
       const rows = events.map(e => {
         const ts = new Date(e.timestamp);
         return '<tr><td>' + esc(ts.toLocaleString()) + '</td><td><b>' + esc(e.itemId) + '</b></td><td>' + esc(e.item || '-') + '</td><td>' + esc(e.action) + '</td><td>' + esc(e.from || '-') + ' &rarr; ' + esc(e.to || '-') + '</td><td>' + esc(e.heldBy || '-') + '</td></tr>';
@@ -499,7 +439,6 @@
       body.appendChild(fromHtml('<div class="tableWrap' + aliceActivityScrollClass + '"><table><thead><tr><th>When</th><th>Unit</th><th>Item</th><th>Action</th><th>Movement</th><th>Held by</th></tr></thead><tbody>' + rows + '</tbody></table></div>'));
       if (events.length > 12) body.appendChild(fromHtml('<div class="scrollHint">Scroll to see more &darr;</div>'));
     }
-
     // ===== AHREN VIEWS =====
     function renderAhren(body){
       if (view === 'home') return renderAhrenHome(body);
@@ -508,11 +447,9 @@
       if (view === 'activity') return renderAhrenActivity(body);
       renderAhrenHome(body);
     }
-
     function renderAhrenHome(body){
       document.getElementById('viewTitle').textContent = 'Shop Overview';
       const s = currentData.stats;
-
       const tiles = document.createElement('div');
       tiles.className = 'tiles';
       tiles.innerHTML = ''
@@ -521,11 +458,9 @@
         + tile('activity', 'Activity', (currentData.recentReturns.length + currentData.activeCheckouts.filter(c => c.checkOut).length), 'last 24h', '', iconActivity());
       body.appendChild(tiles);
     }
-
     function renderAhrenCheckouts(body){
       document.getElementById('viewTitle').textContent = 'All Active Checkouts';
       const items = currentData.activeCheckouts || [];
-
       // Stats bar
       const stats = document.createElement('div');
       stats.className = 'statsBar';
@@ -536,12 +471,10 @@
         + '<div class="miniStat"><b>' + uniquePeople + '</b> people</div>'
         + '<div class="miniStat ' + (overdueCount > 0 ? 'hot' : '') + '"><b>' + overdueCount + '</b> overdue</div>';
       body.appendChild(stats);
-
       if (items.length === 0){
         body.appendChild(fromHtml('<div class="empty">Nothing is checked out right now.<small>When crew members check out tools through the app, they show up here.</small></div>'));
         return;
       }
-
       // Filter bar
       const filterState = { search: '', category: 'all', overdueOnly: false };
       const searchBar = document.createElement('div');
@@ -550,7 +483,6 @@
         + '<input id="coSearch" type="text" placeholder="Search by person or item..." autocomplete="off">'
         + '<div class="chipRow" id="coFilters"></div>';
       body.appendChild(searchBar);
-
       const categories = Array.from(new Set(items.map(c => c.category).filter(Boolean)));
       const chipRow = document.getElementById('coFilters');
       chipRow.appendChild(chipBtn('All', () => { filterState.category = 'all'; filterState.overdueOnly = false; refreshCheckouts(); }));
@@ -558,13 +490,10 @@
       categories.forEach(cat => {
         chipRow.appendChild(chipBtn(cat, () => { filterState.category = cat; refreshCheckouts(); }));
       });
-
       document.getElementById('coSearch').addEventListener('input', (e) => { filterState.search = e.target.value.trim().toLowerCase(); refreshCheckouts(); });
-
       const container = document.createElement('div');
       container.id = 'coBody';
       body.appendChild(container);
-
       function refreshCheckouts(){
         document.querySelectorAll('#coFilters .chip').forEach(c => {
           const label = c.textContent;
@@ -572,7 +501,6 @@
           else if (label === 'Overdue only') c.classList.toggle('active', filterState.overdueOnly);
           else c.classList.toggle('active', label === filterState.category);
         });
-
         let filtered = items;
         if (filterState.overdueOnly) filtered = filtered.filter(c => c.isOverdue);
         if (filterState.category !== 'all') filtered = filtered.filter(c => c.category === filterState.category);
@@ -580,12 +508,10 @@
           const q = filterState.search;
           filtered = filtered.filter(c => (c.person + ' ' + c.item + ' ' + c.destination).toLowerCase().includes(q));
         }
-
         if (filtered.length === 0){
           document.getElementById('coBody').innerHTML = '<div class="empty">No checkouts match your filters.</div>';
           return;
         }
-
         const rows = filtered.map(c => {
           const statusBadge = c.isOverdue
             ? '<span class="badge b-late">' + c.daysLate + ' day' + (c.daysLate === 1 ? '' : 's') + ' late</span>'
@@ -593,23 +519,19 @@
           const cls = c.isOverdue ? ' class="overdue"' : '';
           return '<tr' + cls + '><td><b>' + esc(c.person) + '</b></td><td>' + esc(c.item) + '</td><td>' + esc(c.category) + '</td><td>' + esc(c.destination || '-') + '</td><td>' + esc(c.checkOut) + '</td><td>' + esc(c.dueBack) + '</td><td>' + statusBadge + '</td></tr>';
         }).join('');
-
         const scrollClass = filtered.length > 12 ? ' scroll' : '';
         const scrollHint = filtered.length > 12 ? '<div class="scrollHint">Scroll to see more &darr;</div>' : '';
         document.getElementById('coBody').innerHTML = '<div class="tableWrap' + scrollClass + '"><table><thead><tr><th>Person</th><th>Item</th><th>Category</th><th>Where</th><th>Checked out</th><th>Due back</th><th>Status</th></tr></thead><tbody>' + rows + '</tbody></table></div>' + scrollHint;
       }
       refreshCheckouts();
     }
-
     function renderAhrenOverdue(body){
       document.getElementById('viewTitle').textContent = 'Overdue Items';
       const overdue = (currentData.activeCheckouts || []).filter(c => c.isOverdue);
-
       if (overdue.length === 0){
         body.appendChild(fromHtml('<div class="empty" style="border-color:rgba(63,178,127,.5); background:rgba(63,178,127,.08);">Nothing is overdue right now.<small>All checked-out items are within their due-back window.</small></div>'));
         return;
       }
-
       // Stats bar
       const stats = document.createElement('div');
       stats.className = 'statsBar';
@@ -620,14 +542,12 @@
         + '<div class="miniStat"><b>' + uniquePeople + '</b> people</div>'
         + '<div class="miniStat"><b>' + maxLate + '</b> days (longest overdue)</div>';
       body.appendChild(stats);
-
       // Group by person
       const grouped = {};
       overdue.forEach(c => {
         if (!grouped[c.person]) grouped[c.person] = [];
         grouped[c.person].push(c);
       });
-
       const sortedPeople = Object.keys(grouped).sort((a, b) => grouped[b].length - grouped[a].length);
       let html = '<div class="tableWrap"><table><thead><tr><th>Person</th><th>Item</th><th>Category</th><th>Where</th><th>Due back</th><th>Late</th></tr></thead><tbody>';
       sortedPeople.forEach(person => {
@@ -649,10 +569,8 @@
         body.appendChild(fromHtml('<div class="scrollHint">Scroll to see more &darr;</div>'));
       }
     }
-
     function renderAhrenActivity(body){
       document.getElementById('viewTitle').textContent = 'Recent Shop Activity';
-
       // Combine checkouts + returns from last 24h
       const events = [];
       (currentData.activeCheckouts || []).forEach(c => {
@@ -666,12 +584,10 @@
         }
       });
       events.sort((a, b) => String(b.ts).localeCompare(String(a.ts)));
-
       if (events.length === 0){
         body.appendChild(fromHtml('<div class="empty">No recent activity in the last 24 hours.<small>When crew members check out or return tools, they show up here.</small></div>'));
         return;
       }
-
       const stats = document.createElement('div');
       stats.className = 'statsBar';
       const outs = events.filter(e => e.type === 'Out').length;
@@ -681,19 +597,33 @@
         + '<div class="miniStat"><b>' + outs + '</b> checkouts</div>'
         + '<div class="miniStat"><b>' + returns + '</b> returns</div>';
       body.appendChild(stats);
-
       const rows = events.map(e => {
         const badge = e.type === 'Out'
           ? '<span class="badge b-site">Out</span>'
           : '<span class="badge b-ok">Returned</span>';
         return '<tr><td>' + esc(e.ts) + '</td><td>' + badge + '</td><td><b>' + esc(e.person) + '</b></td><td>' + esc(e.item) + '</td><td>' + esc(e.category || '-') + '</td><td>' + esc(e.detail || '-') + '</td></tr>';
       }).join('');
-
       const activityScrollClass = events.length > 12 ? ' scroll' : '';
       body.appendChild(fromHtml('<div class="tableWrap' + activityScrollClass + '"><table><thead><tr><th>When</th><th>Type</th><th>Person</th><th>Item</th><th>Category</th><th>Where</th></tr></thead><tbody>' + rows + '</tbody></table></div>'));
       if (events.length > 12) body.appendChild(fromHtml('<div class="scrollHint">Scroll to see more &darr;</div>'));
+      // Recent returns detail — photo, notes, and how the return was verified (GPS or QR)
+      const returnsDetail = (currentData.recentReturns || []).filter(r => r.notes || r.photoUrl || r.verificationMethod);
+      if (returnsDetail.length > 0){
+        body.appendChild(fromHtml('<h2 style="margin-top:28px;">Recent Returns &middot; Detail<span class="count">' + returnsDetail.length + '</span></h2>'));
+        const detailRows = returnsDetail.map(r => {
+          const methodBadge = r.verificationMethod === 'gps'
+            ? '<span class="badge b-ok">GPS</span>'
+            : r.verificationMethod === 'qr'
+              ? '<span class="badge b-van">QR</span>'
+              : '<span class="badge b-low">Unverified</span>';
+          const photoCell = r.photoUrl
+            ? '<a href="' + esc(r.photoUrl) + '" target="_blank" rel="noopener"><img src="' + esc(r.photoUrl) + '" alt="Return photo" style="width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid var(--line);"></a>'
+            : '<span style="color:var(--muted);">No photo</span>';
+          return '<tr><td>' + esc(r.checkIn) + '</td><td><b>' + esc(r.person) + '</b></td><td>' + esc(r.item) + '</td><td>' + esc(r.notes || '-') + '</td><td>' + methodBadge + '</td><td>' + photoCell + '</td></tr>';
+        }).join('');
+        body.appendChild(fromHtml('<div class="tableWrap"><table><thead><tr><th>When</th><th>Person</th><th>Item</th><th>Notes</th><th>Verified</th><th>Photo</th></tr></thead><tbody>' + detailRows + '</tbody></table></div>'));
+      }
     }
-
     // ===== HELPERS =====
     function tile(viewName, label, num, sub, style, iconSvg){
       const href = 'dashboard.html?u=' + user + '&view=' + viewName;
@@ -707,19 +637,16 @@
         + '<div class="tileSub">' + sub + '</div>'
         + '</a>';
     }
-
     function iconApprovals(){ return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>'; }
     function iconEquipment(){ return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/></svg>'; }
     function iconContents(){ return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7L12 3 4 7v10l8 4 8-4V7z"/><path d="M4 7l8 4 8-4"/><path d="M12 11v10"/></svg>'; }
     function iconActivity(){ return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>'; }
     function iconLate(){ return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>'; }
-
     function fromHtml(str){
       const div = document.createElement('div');
       div.innerHTML = str;
       return div.firstElementChild;
     }
-
     function chipBtn(label, onClick){
       const btn = document.createElement('button');
       btn.className = 'chip';
@@ -727,7 +654,6 @@
       btn.addEventListener('click', onClick);
       return btn;
     }
-
     function renderPendingCard(p){
       const card = document.createElement('div');
       card.className = 'pendCard';
@@ -743,7 +669,6 @@
         + '</div>';
       return card;
     }
-
     function esc(str){
       if (str === null || str === undefined) return '';
       return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
