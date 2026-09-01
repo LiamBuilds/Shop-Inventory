@@ -216,8 +216,9 @@
         </div>
       </div>
       <div class="field">
-        <label for="dest">Where's it going <span class="req">*</span></label>
-        <input id="dest" type="text" placeholder="Job site or yard" autocomplete="off" required>
+        <label for="dest">Job # and/or Job Name <span class="req">*</span></label>
+        <input id="dest" type="text" placeholder="e.g. 4521 or Banner Island" autocomplete="off" required>
+        <div style="font-size:12px; color:#777; margin-top:4px;">Enter the job number, job name, or both — required on every checkout.</div>
       </div>
 <div class="field">
         <label for="notes">Notes <span style="text-transform:none; font-weight:400; color:#777;">(optional)</span></label>
@@ -752,7 +753,7 @@
       const dueDateStr = document.getElementById('dueDate').value;
       if(!name){ toast("Pick your name"); return; }
       if(!tool){ toast("Pick a tool"); return; }
-      if(!dest){ toast("Enter where it's going"); document.getElementById('dest').focus(); return; }
+      if(!dest){ toast("Enter the job # or job name"); document.getElementById('dest').focus(); return; }
       if(!dueDateStr){ toast("Pick a return date"); document.getElementById('dueDate').focus(); return; }
       // If mitigation category AND person is not approved, show the modal to collect justification
       if (currentNeedsApproval()) {
