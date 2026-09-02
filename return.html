@@ -196,9 +196,27 @@
     const SUPABASE_ANON_KEY  = "sb_publishable_w9xkQQE07152NL8faFVTwQ_LSJ9Hf_d";
     const RETURN_PHOTO_BUCKET = "return-photos";
     // ---- Shop geofence ----
-    const SHOP_LAT = 37.9715;
-    const SHOP_LNG = -121.2462;
-    const SHOP_RADIUS_METERS = 300;
+    // Locations live in the shop_locations table (Supabase) so both buildings can be managed without redeploying.
+    // The fallback below is only used if that fetch fails. The server re-checks distance on every return regardless.
+    const SHOP_LOCATIONS_FALLBACK = [{ name: 'Haggerty Shop (2474 Wigwam Dr)', lat: 37.9854, lng: -121.25414, radius_m: 150 }];
+    let shopLocations = SHOP_LOCATIONS_FALLBACK;
+    (async function loadShopLocations(){
+      try{
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/shop_locations?select=name,lat,lng,radius_m&active=eq.true`, {
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+        });
+        const rows = await res.json();
+        if(Array.isArray(rows) && rows.length) shopLocations = rows;
+      } catch(e){ /* keep fallback */ }
+    })();
+    function nearestShop(lat, lng){
+      let best = null;
+      for(const loc of shopLocations){
+        const d = haversineMeters(lat, lng, Number(loc.lat), Number(loc.lng));
+        if(!best || d < best.dist) best = { loc, dist: d, inside: d <= Number(loc.radius_m || 150) };
+      }
+      return best;
+    }
     // Static QR code posted at the shop as a backup when GPS is unavailable/denied/out of range
     const SHOP_QR_VALUE = "HAGGERTY-SHOP-VERIFY";
     function haversineMeters(lat1, lon1, lat2, lon2){
@@ -460,8 +478,8 @@
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           const lat = pos.coords.latitude, lng = pos.coords.longitude;
-          const dist = haversineMeters(lat, lng, SHOP_LAT, SHOP_LNG);
-          if(dist <= SHOP_RADIUS_METERS){
+          const near = nearestShop(lat, lng);
+          if(near && near.inside){
             returnVerification = { method: 'gps', lat, lng };
             vs.className = 'verifyBox ok';
             vs.textContent = "You're at the shop. Location verified.";
@@ -609,6 +627,14 @@
         if(!res.ok || (data && data.ok === false)){
           const msg = (data && data.message) ? data.message : 'Could not return, try again';
           toast(msg);
+          if(data && (data.error === 'outside_geofence' || data.error === 'gps_missing')){
+            // Server rejected the GPS fix; fall back to the QR code path
+            returnVerification = null;
+            const vs = document.getElementById('verifyStatus');
+            vs.className = 'verifyBox warn';
+            vs.textContent = "The shop didn't confirm your location. Scan the QR code posted there instead.";
+            document.getElementById('qrFallbackBtn').style.display = 'block';
+          }
           btn.disabled = false;
           btn.textContent = 'Confirm Return';
           window.__returning = false;
