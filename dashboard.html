@@ -517,7 +517,8 @@
             ? '<span class="badge b-late">' + c.daysLate + ' day' + (c.daysLate === 1 ? '' : 's') + ' late</span>'
             : '<span class="badge b-ok">On time</span>';
           const cls = c.isOverdue ? ' class="overdue"' : '';
-          return '<tr' + cls + '><td><b>' + esc(c.person) + '</b></td><td>' + esc(c.item) + '</td><td>' + esc(c.category) + '</td><td>' + esc(c.destination || '-') + '</td><td>' + esc(c.checkOut) + '</td><td>' + esc(c.dueBack) + '</td><td>' + statusBadge + '</td></tr>';
+          const thumb = c.toolPhotoUrl ? '<a href="' + esc(c.toolPhotoUrl) + '" target="_blank" rel="noopener"><img src="' + esc(c.toolPhotoUrl) + '" alt="" loading="lazy" style="width:40px;height:40px;object-fit:cover;border-radius:8px;border:1px solid var(--line);vertical-align:middle;margin-right:8px;"></a>' : '';
+          return '<tr' + cls + '><td><b>' + esc(c.person) + '</b></td><td>' + thumb + esc(c.item) + '</td><td>' + esc(c.category) + '</td><td>' + esc(c.destination || '-') + '</td><td>' + esc(c.checkOut) + '</td><td>' + esc(c.dueBack) + '</td><td>' + statusBadge + '</td></tr>';
         }).join('');
         const scrollClass = filtered.length > 12 ? ' scroll' : '';
         const scrollHint = filtered.length > 12 ? '<div class="scrollHint">Scroll to see more &darr;</div>' : '';

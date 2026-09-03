@@ -14,7 +14,7 @@
     --bg:#232323; --card:#2b2b2b; --line:#3a3a3a; --field:#2b2b2b;
     --orange:#F68922; --orange-press:#d9760f;
     --ink:#1b1b1b; --paper:#f4f4f2; --muted:#9a9a9a; --gray:#4D4D4D;
-    --green:#3fb27f; --green-press:#349d6e;
+    --green:#3fb27f; --green-press:#349d6e; --red:#e25c4e;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{margin:0;height:100%;}
@@ -141,7 +141,10 @@
     background:rgba(246,137,34,.10); color:var(--paper); border:1px solid rgba(246,137,34,.35);}
   .micStatus.err{background:rgba(200,60,60,.10); border-color:rgba(200,60,60,.35);}
   .toolResults{max-height:280px; overflow-y:auto; background:var(--field); border:1.5px solid var(--line); border-top:none; border-radius:0 0 12px 12px; margin-top:-1px;}
-  .toolResults .row{padding:14px 15px; border-bottom:1px solid var(--line); font-size:17px; cursor:pointer; color:var(--paper);}
+  .toolResults .row{padding:12px 15px; border-bottom:1px solid var(--line); font-size:17px; cursor:pointer; color:var(--paper); display:flex; align-items:center; gap:12px;}
+  .toolResults .row img{width:44px; height:44px; object-fit:cover; border-radius:8px; border:1px solid var(--line); flex-shrink:0; background:#1b1b1b;}
+  .toolResults .row .rowTxt{flex:1; min-width:0;}
+  .cartRow img{width:40px; height:40px; object-fit:cover; border-radius:8px; border:1px solid var(--line); flex-shrink:0;}
   .toolResults .row:last-child{border-bottom:none;}
   .toolResults .row:hover, .toolResults .row.hilite{background:rgba(246,137,34,.14); color:var(--paper);}
   .toolResults .empty{padding:14px 15px; color:var(--muted); font-style:italic; font-size:15px;}
@@ -151,6 +154,34 @@
   .toolSelected span{font-size:17px; font-weight:600;}
   .toolSelected button{appearance:none; background:transparent; border:0; color:var(--muted); font-size:26px; cursor:pointer; padding:0 4px; line-height:1;}
   #toolSearch:focus{border-radius:12px 12px 0 0;}
+  /* Multi-item cart */
+  .addBtn{appearance:none; width:100%; margin-top:10px; background:transparent; border:1.5px solid var(--orange); color:var(--orange);
+    border-radius:12px; padding:13px; font-size:15px; font-weight:700; font-family:inherit; cursor:pointer;}
+  .addBtn:active{background:rgba(246,137,34,.12);}
+  .cart{margin-top:14px; border:1.5px solid var(--line); border-radius:14px; overflow:hidden; display:none;}
+  .cart.show{display:block;}
+  .cartHead{display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--card);
+    font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted);}
+  .cartRow{display:flex; align-items:center; gap:10px; padding:12px 14px; border-top:1px solid var(--line);}
+  .cartRow .ci{flex:1; min-width:0;}
+  .cartRow .cn{font-size:15px; font-weight:600; word-wrap:break-word;}
+  .cartRow .cs{font-size:12px; color:var(--muted); margin-top:2px;}
+  .cartRow .cs.mitig{color:var(--orange);}
+  .qty{display:flex; align-items:center; gap:2px; flex-shrink:0;}
+  .qty button{appearance:none; width:32px; height:32px; border-radius:8px; border:1.5px solid var(--line); background:var(--card);
+    color:var(--paper); font-size:18px; font-weight:700; cursor:pointer; line-height:1; font-family:inherit;}
+  .qty span{min-width:26px; text-align:center; font-weight:700; font-size:15px;}
+  .cartRow .rm{appearance:none; background:transparent; border:0; color:var(--muted); font-size:24px; cursor:pointer; padding:0 2px; line-height:1;}
+  .addMore{appearance:none; width:100%; background:transparent; border:0; border-top:1px solid var(--line); color:var(--orange);
+    padding:12px; font-size:14px; font-weight:600; font-family:inherit; cursor:pointer;}
+  .resultList{list-style:none; margin:14px 0 0; padding:0; text-align:left; width:100%;}
+  .resultList li{display:flex; gap:10px; align-items:flex-start; padding:9px 0; border-top:1px solid var(--line); font-size:14px;}
+  .resultList li:first-child{border-top:0;}
+  .resultList .dot{width:10px; height:10px; border-radius:50%; margin-top:5px; flex-shrink:0;}
+  .resultList .ok{background:var(--green);}
+  .resultList .pend{background:var(--orange);}
+  .resultList .fail{background:var(--red);}
+  .resultList small{display:block; color:var(--muted); margin-top:2px;}
   .toast{position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(20px);
     background:var(--orange); color:var(--ink); font-weight:700; padding:12px 18px; border-radius:12px;
     opacity:0; pointer-events:none; transition:.25s; font-size:14px; max-width:90%; text-align:center;}
@@ -214,6 +245,12 @@
           <span id="toolSelectedName"></span>
           <button type="button" id="toolClear" aria-label="Clear selection">&times;</button>
         </div>
+        <button type="button" class="addBtn" id="addToCart" style="display:none;">+ Add to list</button>
+        <div class="cart" id="cart">
+          <div class="cartHead"><span>Checking out</span><span id="cartCount"></span></div>
+          <div id="cartRows"></div>
+          <button type="button" class="addMore" id="addMore">+ Add from another section</button>
+        </div>
       </div>
       <div class="field">
         <label for="dest">Job # and/or Job Name <span class="req">*</span></label>
@@ -249,7 +286,9 @@
       <h2>Checked out</h2>
       <p id="doneLine"></p>
       <p class="meta" id="doneMeta"></p>
+      <ul class="resultList" id="resultList" style="display:none;"></ul>
       <div class="acts">
+        <button class="solid" id="retryFailed" style="display:none;">Retry failed items</button>
         <button class="solid" id="another">Check out another</button>
         <a class="ghost" id="doneHome" href="index.html">Done</a>
       </div>
@@ -292,7 +331,7 @@
     const MY_DECISIONS_URL = "https://haggertybuilds.app.n8n.cloud/webhook/sb-my-decisions";
     // ------------------
     // Known section names (in case the tools API doesn't have them yet)
-    const KNOWN_SECTIONS = ["Equipment","Ladders","Tools","Cleaning","Landscaping","Large Grey Bins","Pallets","Dehumidifiers","Air Movers","Scrubbers AFD","Fans","Extractors"];
+    const KNOWN_SECTIONS = ["Equipment","Power Tools","Lighting","Rigging","Safety","Ladders","Tools","Cleaning","Landscaping","Large Grey Bins","Pallets","Dehumidifiers","Air Movers","Scrubbers AFD","Fans","Extractors"];
     const MITIGATION_CATEGORIES = ['Dehumidifiers', 'Air Movers', 'Scrubbers AFD', 'Fans', 'Extractors'];
     let t;
     function toast(m){
@@ -457,7 +496,8 @@
         matches.forEach((t, i) => {
           const row = document.createElement('div');
           row.className = 'row';
-          row.textContent = t.item;
+          if (t.photoUrl) { const im = document.createElement('img'); im.src = t.photoUrl; im.alt = ''; im.loading = 'lazy'; im.onerror = () => im.remove(); row.appendChild(im); }
+          const txt = document.createElement('div'); txt.className = 'rowTxt'; txt.textContent = t.item; row.appendChild(txt);
           row.dataset.value = t.item;
           if (i === 0) row.classList.add('hilite');
           row.addEventListener('click', () => selectTool(t.item));
@@ -477,6 +517,8 @@
       selectedBox.style.display = 'flex';
       searchInput.style.display = 'none';
       results.style.display = 'none';
+      document.getElementById('addToCart').style.display = 'block';
+      updateSubmitLabel();
     }
     function clearToolSelection() {
       const searchInput = document.getElementById('toolSearch');
@@ -487,7 +529,80 @@
       searchInput.style.display = 'block';
       searchInput.value = '';
       searchInput.focus();
+      document.getElementById('addToCart').style.display = 'none';
+      updateSubmitLabel();
     }
+    // -------- Multi-item cart --------
+    // Each entry: { item, section, qty }. Shared fields (name, job, notes, due date) apply to every entry.
+    let cart = [];
+    function cartTotal(){ return cart.reduce((n, c) => n + c.qty, 0); }
+    function addToCart(item, section){
+      const existing = cart.find(c => c.item === item && c.section === section);
+      const t = categoryTools.find(x => x.item === item);
+      if (existing) existing.qty += 1; else cart.push({ item, section, qty: 1, photoUrl: (t && t.photoUrl) || '' });
+      renderCart();
+    }
+    function renderCart(){
+      const box = document.getElementById('cart');
+      const rows = document.getElementById('cartRows');
+      rows.innerHTML = '';
+      cart.forEach((c, idx) => {
+        const row = document.createElement('div');
+        row.className = 'cartRow';
+        if (c.photoUrl) { const im = document.createElement('img'); im.src = c.photoUrl; im.alt = ''; im.onerror = () => im.remove(); row.appendChild(im); }
+        const info = document.createElement('div'); info.className = 'ci';
+        const nm = document.createElement('div'); nm.className = 'cn'; nm.textContent = c.item;
+        const sec = document.createElement('div'); sec.className = 'cs' + (isMitigationCategory(c.section) ? ' mitig' : '');
+        sec.textContent = c.section + (isMitigationCategory(c.section) ? ' · approval may be required' : '');
+        info.appendChild(nm); info.appendChild(sec);
+        const qty = document.createElement('div'); qty.className = 'qty';
+        const minus = document.createElement('button'); minus.type = 'button'; minus.textContent = '−';
+        const num = document.createElement('span'); num.textContent = c.qty;
+        const plus = document.createElement('button'); plus.type = 'button'; plus.textContent = '+';
+        minus.addEventListener('click', () => { c.qty -= 1; if (c.qty <= 0) cart.splice(idx, 1); renderCart(); });
+        plus.addEventListener('click', () => { c.qty += 1; renderCart(); });
+        qty.appendChild(minus); qty.appendChild(num); qty.appendChild(plus);
+        const rm = document.createElement('button'); rm.type = 'button'; rm.className = 'rm'; rm.innerHTML = '&times;'; rm.setAttribute('aria-label', 'Remove');
+        rm.addEventListener('click', () => { cart.splice(idx, 1); renderCart(); });
+        row.appendChild(info); row.appendChild(qty); row.appendChild(rm);
+        rows.appendChild(row);
+      });
+      const n = cartTotal();
+      document.getElementById('cartCount').textContent = n ? (n + ' item' + (n === 1 ? '' : 's')) : '';
+      box.classList.toggle('show', cart.length > 0);
+      updateSubmitLabel();
+    }
+    // The currently selected (not yet added) tool counts as one more item at submit time
+    function pendingItems(){
+      const items = cart.map(c => ({ item: c.item, section: c.section, qty: c.qty }));
+      const current = document.getElementById('tool').value;
+      if (current) {
+        const existing = items.find(c => c.item === current && c.section === activeCategory);
+        if (existing) existing.qty += 1; else items.push({ item: current, section: activeCategory, qty: 1 });
+      }
+      return items;
+    }
+    function updateSubmitLabel(){
+      const btn = document.getElementById('submit');
+      if (submitting) return;
+      const n = pendingItems().reduce((s, c) => s + c.qty, 0);
+      btn.textContent = n > 1 ? ('Check Out ' + n + ' Items') : 'Check Out Tool';
+    }
+    document.getElementById('addToCart').addEventListener('click', () => {
+      const current = document.getElementById('tool').value;
+      if (!current) return;
+      addToCart(current, activeCategory);
+      // Clear the picker so they can grab the next one
+      const searchInput = document.getElementById('toolSearch');
+      document.getElementById('tool').value = '';
+      document.getElementById('toolSelected').style.display = 'none';
+      document.getElementById('addToCart').style.display = 'none';
+      searchInput.style.display = 'block';
+      searchInput.value = '';
+      updateSubmitLabel();
+      toast(current + ' added');
+    });
+    document.getElementById('addMore').addEventListener('click', showManualPicker);
     // -------- Screen management --------
     // Mitigation categories that require Alice's approval for non-approved users
      
@@ -614,47 +729,9 @@
         document.getElementById('modalJust').focus();
         return;
       }
-      // Close the modal
+      // Close the modal and run the batch with the justification attached to every item
       document.getElementById('mitigWarn').classList.remove('show');
-      // Now submit with the justification included
-      submitting = true;
-      const btn = document.getElementById('submit');
-      btn.disabled = true;
-      btn.textContent = 'Sending request...';
-      const name = document.getElementById('name').value;
-      const tool = document.getElementById('tool').value;
-      const dest = document.getElementById('dest').value.trim();
-      const notesText = document.getElementById('notes').value.trim();
-      const dueDateStr = document.getElementById('dueDate').value;
-      const due = new Date(dueDateStr + 'T00:00:00');
-      const isToday = dueDateStr === new Date().toISOString().slice(0,10);
-      const payload = {
-        person: name, tool, destination: dest, notes: notesText,
-        justification: justText,
-        dueDate: dueDateStr,
-        checkedOutAt: new Date().toISOString(),
-        section: activeCategory
-      };
-      const result = await doSubmit(payload);
-      if (!result.ok) {
-        btn.disabled = false;
-        btn.textContent = "Check Out Tool";
-        submitting = false;
-        return;
-      }
-      const responseData = result.data;
-      if (responseData && responseData.status === 'pending') {
-        document.getElementById('doneLine').innerHTML = 'Your request for <b>'+tool+'</b> was sent to Alice.';
-        document.getElementById('doneMeta').textContent = 'You will get an email and see a banner in the app once she decides.';
-      } else {
-        document.getElementById('doneLine').innerHTML = '<b>'+tool+'</b> is now out to '+name+'.';
-        document.getElementById('doneMeta').textContent = (isToday?'Due back today':'Due back '+fmt(due)) + (dest?' \u00b7 '+dest:'');
-      }
-      document.getElementById('formScreen').style.display = 'none';
-      document.getElementById('doneScreen').classList.add('show');
-      submitting = false;
-      btn.disabled = false;
-      btn.textContent = "Check Out Tool";
+      await runCheckout(justText);
     });
     document.getElementById('mitigCancel').addEventListener('click', () => {
       document.getElementById('mitigWarn').classList.remove('show');
@@ -720,7 +797,8 @@
     });
     // Check if the current selection needs approval (mitigation category + person not approved)
     function currentNeedsApproval(){
-      if (!isMitigationCategory(activeCategory)) return false;
+      // True if any item in the batch is mitigation equipment and this person isn't approved
+      if (!pendingItems().some(c => isMitigationCategory(c.section))) return false;
       const nameSel = document.getElementById('name');
       const selectedName = nameSel.value;
       if (!selectedName) return false;
@@ -744,48 +822,128 @@
     }
     // Submit
     let submitting = false;
+    let lastBatch = null; // { name, dest, notes, dueDateStr, justification, units:[{item, section, status, checkoutId, message}] }
     document.getElementById('submit').addEventListener('click', async () => {
       if (submitting) return;
-      const btn = document.getElementById('submit');
       const name = document.getElementById('name').value;
-      const tool = document.getElementById('tool').value;
       const dest = document.getElementById('dest').value.trim();
       const dueDateStr = document.getElementById('dueDate').value;
       if(!name){ toast("Pick your name"); return; }
-      if(!tool){ toast("Pick a tool"); return; }
+      if(pendingItems().length === 0){ toast("Pick a tool"); return; }
       if(!dest){ toast("Enter the job # or job name"); document.getElementById('dest').focus(); return; }
       if(!dueDateStr){ toast("Pick a return date"); document.getElementById('dueDate').focus(); return; }
-      // If mitigation category AND person is not approved, show the modal to collect justification
+      // If any item is mitigation equipment AND person is not approved, collect one justification for the batch
       if (currentNeedsApproval()) {
         document.getElementById('modalJust').value = '';
         document.getElementById('mitigWarn').classList.add('show');
         setTimeout(() => document.getElementById('modalJust').focus(), 100);
         return;
       }
-      submitting = true; btn.disabled = true; btn.textContent = "Checking out…";
-      const due = new Date(dueDateStr + 'T00:00:00');
-      const isToday = dueDateStr === new Date().toISOString().slice(0,10);
-      const notesText = document.getElementById('notes').value.trim();
-      const payload = { person:name, tool, destination:dest, notes:notesText, justification: '', dueDate:dueDateStr, checkedOutAt:new Date().toISOString(), section:activeCategory };
-      let responseData = null;
-      if (CHECKOUT_WEBHOOK) {
+      await runCheckout('');
+    });
+    // Expand the cart into one unit per row (qty 2 = two rows, each with its own checkout code)
+    function expandUnits(items){
+      const units = [];
+      items.forEach(c => { for (let i = 0; i < c.qty; i++) units.push({ item: c.item, section: c.section, status: 'todo' }); });
+      return units;
+    }
+    // Sends each unit to the webhook in sequence. One failure doesn't stop the rest.
+    async function runCheckout(justification, retryOnly){
+      const btn = document.getElementById('submit');
+      submitting = true; btn.disabled = true;
+      if (!retryOnly) {
+        lastBatch = {
+          name: document.getElementById('name').value,
+          dest: document.getElementById('dest').value.trim(),
+          notes: document.getElementById('notes').value.trim(),
+          dueDateStr: document.getElementById('dueDate').value,
+          justification: justification || '',
+          units: expandUnits(pendingItems())
+        };
+      }
+      const b = lastBatch;
+      const todo = b.units.filter(u => u.status === 'todo' || u.status === 'failed');
+      for (let i = 0; i < todo.length; i++) {
+        const u = todo[i];
+        btn.textContent = todo.length > 1 ? ('Checking out ' + (i + 1) + ' of ' + todo.length + '…') : 'Checking out…';
+        const payload = {
+          person: b.name, tool: u.item, destination: b.dest, notes: b.notes,
+          justification: isMitigationCategory(u.section) ? b.justification : '', dueDate: b.dueDateStr,
+          checkedOutAt: new Date().toISOString(), section: u.section
+        };
+        let data = null;
         try {
           const res = await fetch(CHECKOUT_WEBHOOK, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
-          responseData = await res.json();
+          data = await res.json();
+        } catch(e) { data = null; }
+        if (data && data.ok === true && data.status === 'pending') { u.status = 'pending'; u.checkoutId = data.requestCode || ''; }
+        else if (data && data.ok === true) { u.status = 'checked_out'; u.checkoutId = data.checkoutId || ''; }
+        else { u.status = 'failed'; u.message = (data && data.message) ? data.message : 'No signal'; }
+      }
+      submitting = false; btn.disabled = false; btn.textContent = 'Check Out Tool';
+      showBatchResult();
+    }
+    function showBatchResult(){
+      const b = lastBatch;
+      const out = b.units.filter(u => u.status === 'checked_out');
+      const pend = b.units.filter(u => u.status === 'pending');
+      const fail = b.units.filter(u => u.status === 'failed');
+      const due = new Date(b.dueDateStr + 'T00:00:00');
+      const isToday = b.dueDateStr === new Date().toISOString().slice(0,10);
+      const line = document.getElementById('doneLine');
+      const meta = document.getElementById('doneMeta');
+      const list = document.getElementById('resultList');
+      const h2 = document.querySelector('#doneScreen h2');
+      const dueText = (isToday ? 'Due back today' : 'Due back ' + fmt(due)) + (b.dest ? ' · ' + b.dest : '');
+      if (b.units.length === 1) {
+        const u = b.units[0];
+        if (u.status === 'pending') {
+          h2.textContent = 'Request sent';
+          line.innerHTML = 'Your request for <b>' + esc(u.item) + '</b> was sent to Alice.';
+          meta.textContent = 'You will get an email and see a banner in the app once she decides.';
+        } else if (u.status === 'checked_out') {
+          h2.textContent = 'Checked out';
+          line.innerHTML = '<b>' + esc(u.item) + '</b> is now out to ' + esc(b.name) + '.';
+          meta.textContent = dueText;
+        } else {
+          h2.textContent = 'Not checked out';
+          line.innerHTML = '<b>' + esc(u.item) + '</b> did not go through.';
+          meta.textContent = u.message || 'Try again.';
         }
-        catch(e) { toast("No signal, try again"); submitting=false; btn.disabled=false; btn.textContent="Check Out Tool"; return; }
-      }
-      // Check if this is a pending approval response
-      if (responseData && responseData.status === 'pending') {
-        document.getElementById('doneLine').innerHTML = 'Your request for <b>'+tool+'</b> was sent to Alice.';
-        document.getElementById('doneMeta').textContent = 'You\'ll get an email and see a banner in the app once she decides.';
+        list.style.display = 'none';
       } else {
-        document.getElementById('doneLine').innerHTML = '<b>'+tool+'</b> is now out to '+name+'.';
-        document.getElementById('doneMeta').textContent = (isToday?'Due back today':'Due back '+fmt(due)) + (dest?' \u00b7 '+dest:'');
+        h2.textContent = fail.length === 0 ? 'Checked out' : (out.length + pend.length > 0 ? 'Partly checked out' : 'Not checked out');
+        const parts = [];
+        if (out.length) parts.push(out.length + ' out to ' + esc(b.name));
+        if (pend.length) parts.push(pend.length + ' sent to Alice');
+        if (fail.length) parts.push(fail.length + ' failed');
+        line.innerHTML = parts.join(' · ');
+        meta.textContent = dueText;
+        list.innerHTML = '';
+        b.units.forEach(u => {
+          const li = document.createElement('li');
+          const dot = document.createElement('span');
+          dot.className = 'dot ' + (u.status === 'checked_out' ? 'ok' : (u.status === 'pending' ? 'pend' : 'fail'));
+          const txt = document.createElement('div');
+          txt.textContent = u.item;
+          const sm = document.createElement('small');
+          sm.textContent = u.status === 'checked_out' ? 'Checked out' : (u.status === 'pending' ? 'Waiting on Alice' : ('Failed: ' + (u.message || 'no signal')));
+          txt.appendChild(sm);
+          li.appendChild(dot); li.appendChild(txt);
+          list.appendChild(li);
+        });
+        list.style.display = 'block';
       }
+      document.getElementById('retryFailed').style.display = fail.length ? 'block' : 'none';
       document.getElementById('formScreen').style.display = 'none';
       document.getElementById('doneScreen').classList.add('show');
-      submitting = false; btn.disabled = false; btn.textContent = "Check Out Tool";
+    }
+    function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    document.getElementById('retryFailed').addEventListener('click', async () => {
+      if (submitting || !lastBatch) return;
+      document.getElementById('doneScreen').classList.remove('show');
+      document.getElementById('formScreen').style.display = 'flex';
+      await runCheckout(lastBatch.justification, true);
     });
     document.getElementById('another').addEventListener('click', () => {
       document.getElementById('name').selectedIndex = 0;
@@ -793,7 +951,11 @@
       document.getElementById('dest').value = '';
       const dd = document.getElementById('dueDate'); if (dd) dd.value = new Date().toISOString().slice(0,10);
       const n = document.getElementById('notes'); if (n) n.value = '';
-const ms = document.getElementById('micStatus'); if (ms) ms.style.display = 'none';
+      const ms = document.getElementById('micStatus'); if (ms) ms.style.display = 'none';
+      cart = []; renderCart(); lastBatch = null;
+      document.getElementById('addToCart').style.display = 'none';
+      document.getElementById('retryFailed').style.display = 'none';
+      document.getElementById('resultList').style.display = 'none';
       activeCategory = '';
       goToScan();
     });

@@ -40,6 +40,7 @@
   .item{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px;
     display:flex; justify-content:space-between; align-items:center; gap:12px;}
   .item.overdue{border-color:var(--red); background:rgba(226,92,78,.08);}
+  .item img.thumb{width:52px; height:52px; object-fit:cover; border-radius:10px; border:1px solid var(--line); flex-shrink:0;}
   .item .info{flex:1; min-width:0;}
   .item .nm{font-size:17px; font-weight:600; margin-bottom:4px; word-wrap:break-word;}
   .item .meta{font-size:13px; color:var(--muted);}
@@ -132,7 +133,7 @@
       <div class="items" id="items"></div>
     </div>
     <div class="empty" id="emptyState" style="display:none;">Nothing checked out under that name.</div>
-    <p class="privacyNote">When you return a tool, we collect a photo, your notes, and your approximate location at the shop to confirm the check-in. This is only used for shop accountability and is shared with Ahren.</p>
+    <p class="privacyNote">Your location and a photo are recorded when returning equipment for accountability of company property.</p>
   </main>
   <div class="undoBar" id="undoBar">
     <div class="msg" id="undoMsg"></div>
@@ -217,8 +218,9 @@
       }
       return best;
     }
-    // Static QR code posted at the shop as a backup when GPS is unavailable/denied/out of range
-    const SHOP_QR_VALUE = "HAGGERTY-SHOP-VERIFY";
+    // Static QR code posted at the shop as a backup when GPS is unavailable/denied/out of range.
+    // The scanned value is sent to the server, which checks it against the stored shop code.
+    const SHOP_QR_PREFIX = "HAGGERTY-";
     function haversineMeters(lat1, lon1, lat2, lon2){
       const R = 6371000;
       const toRad = d => d * Math.PI / 180;
@@ -392,6 +394,7 @@
           dueLabel = 'No return date set';
         }
         card.innerHTML = `
+          ${it.photoUrl ? '<img class="thumb" alt="" loading="lazy">' : ''}
           <div class="info">
             <div class="nm"></div>
             <div class="meta"></div>
@@ -399,6 +402,7 @@
           <button class="ret">Return</button>
         `;
         card.querySelector('.nm').textContent = it.item;
+        const th = card.querySelector('img.thumb'); if (th) { th.src = it.photoUrl; th.onerror = () => th.remove(); }
         card.querySelector('.meta').textContent = dueLabel;
         const btn = card.querySelector('.ret');
         btn.addEventListener('click', () => {
@@ -535,8 +539,8 @@
         try{
           const imgData = qrCtx.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
           const code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'dontInvert' });
-          if(code && code.data && code.data.trim().toUpperCase() === SHOP_QR_VALUE){
-            returnVerification = { method: 'qr' };
+          if(code && code.data && code.data.trim().toUpperCase().startsWith(SHOP_QR_PREFIX)){
+            returnVerification = { method: 'qr', qrValue: code.data.trim() };
             const vs = document.getElementById('verifyStatus');
             vs.className = 'verifyBox ok';
             vs.textContent = 'Shop QR code scanned. Location verified.';
@@ -620,20 +624,24 @@
             photoPath: photoPath,
             verificationMethod: returnVerification.method,
             lat: returnVerification.lat != null ? returnVerification.lat : null,
-            lng: returnVerification.lng != null ? returnVerification.lng : null
+            lng: returnVerification.lng != null ? returnVerification.lng : null,
+            qrValue: returnVerification.qrValue || null
           })
         });
         const data = await res.json().catch(() => null);
         if(!res.ok || (data && data.ok === false)){
           const msg = (data && data.message) ? data.message : 'Could not return, try again';
           toast(msg);
-          if(data && (data.error === 'outside_geofence' || data.error === 'gps_missing')){
-            // Server rejected the GPS fix; fall back to the QR code path
+          if(data && (data.error === 'outside_geofence' || data.error === 'gps_missing' || data.error === 'qr_invalid')){
+            // Server rejected the location proof; send them back to the QR code path
             returnVerification = null;
             const vs = document.getElementById('verifyStatus');
             vs.className = 'verifyBox warn';
-            vs.textContent = "The shop didn't confirm your location. Scan the QR code posted there instead.";
+            vs.textContent = data.error === 'qr_invalid'
+              ? "That wasn't the shop code. Scan the QR code posted at the shop."
+              : "The shop didn't confirm your location. Scan the QR code posted there instead.";
             document.getElementById('qrFallbackBtn').style.display = 'block';
+            updateConfirmEnabled();
           }
           btn.disabled = false;
           btn.textContent = 'Confirm Return';
