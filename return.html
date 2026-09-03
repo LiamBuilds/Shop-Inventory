@@ -107,6 +107,33 @@
   .returnModal button.continue:disabled{opacity:.5; cursor:default;}
   .returnModal button.cancel{appearance:none; border:1.5px solid var(--gray); border-radius:12px; padding:15px; font-size:15px;
     font-weight:600; font-family:inherit; cursor:pointer; background:transparent; color:var(--paper);}
+  .item .btns{display:flex; flex-direction:column; gap:6px; flex-shrink:0;}
+  .xfer{appearance:none; border:1.5px solid var(--gray); background:transparent; color:var(--paper); border-radius:10px; padding:9px 12px; font-size:13px; font-weight:600; font-family:inherit; cursor:pointer;}
+  .xfer:disabled{opacity:.5; cursor:default;}
+  .xferTag{display:inline-block; margin-top:6px; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; background:rgba(246,137,34,.18); color:var(--orange);}
+  .xferCancel{appearance:none; background:transparent; border:0; color:var(--muted); font-size:12px; text-decoration:underline; cursor:pointer; padding:2px 0; margin-left:8px; font-family:inherit;}
+  /* Incoming transfer banner */
+  .xferBar{display:none; background:var(--card); border:1.5px solid var(--orange); border-radius:14px; padding:14px 16px; margin-bottom:18px;}
+  .xferBar.show{display:block;}
+  .xferBar .xb{font-size:15px; line-height:1.4; margin-bottom:10px;}
+  .xferBar .xb small{display:block; color:var(--muted); font-size:13px; margin-top:4px;}
+  .xferBar .xa{display:flex; gap:8px;}
+  .xferBar .xa button{flex:1; appearance:none; border:0; border-radius:10px; padding:12px; font-size:14px; font-weight:700; font-family:inherit; cursor:pointer;}
+  .xferBar .accept{background:var(--green); color:var(--ink);}
+  .xferBar .decline{background:transparent; color:var(--paper); border:1.5px solid var(--gray) !important;}
+  .xferBar .xa button:disabled{opacity:.6;}
+  /* Transfer modal */
+  .xferModal{position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:80; display:none; align-items:center; justify-content:center; padding:20px;}
+  .xferModal.show{display:flex;}
+  .xferModal .box{background:var(--bg); border:1.5px solid var(--line); border-radius:16px; padding:24px; max-width:420px; width:100%;}
+  .xferModal h3{font-family:Georgia,serif; font-size:20px; margin:0 0 6px; color:var(--paper);}
+  .xferModal .who{color:var(--muted); font-size:14px; margin:0 0 18px;}
+  .xferModal textarea{width:100%; background:var(--field); color:var(--paper); border:1.5px solid var(--line); border-radius:12px; padding:14px 15px; font-size:16px; font-family:inherit; resize:vertical; min-height:56px;}
+  .xferModal textarea:focus{outline:none; border-color:var(--orange);}
+  .xferModal .buttons{display:flex; flex-direction:column; gap:10px; margin-top:20px;}
+  .xferModal button.go{appearance:none; border:0; border-radius:12px; padding:15px; font-size:15px; font-weight:700; font-family:inherit; cursor:pointer; background:var(--orange); color:var(--ink);}
+  .xferModal button.go:disabled{opacity:.5; cursor:default;}
+  .xferModal button.cancel{appearance:none; border:1.5px solid var(--gray); border-radius:12px; padding:15px; font-size:15px; font-weight:600; font-family:inherit; cursor:pointer; background:transparent; color:var(--paper);}
   .privacyNote{color:var(--muted); font-size:12px; line-height:1.5; text-align:center; margin-top:auto; padding-top:24px;}
 </style>
 </head>
@@ -129,6 +156,13 @@
       <select id="name">
         <option value="" selected disabled id="namePlaceholder">Loading…</option>
       </select>
+    </div>
+    <div class="xferBar" id="xferBar">
+      <div class="xb" id="xferBarText"></div>
+      <div class="xa">
+        <button type="button" class="accept" id="xferAccept">Accept</button>
+        <button type="button" class="decline" id="xferDecline">Decline</button>
+      </div>
     </div>
     <div id="itemsArea" style="display:none;">
       <label style="margin-bottom:12px;">What you have out</label>
@@ -184,6 +218,26 @@
       </div>
     </div>
   </div>
+  <!-- Transfer to teammate modal -->
+  <div class="xferModal" id="xferModal">
+    <div class="box">
+      <h3>Hand off to a teammate</h3>
+      <p class="who" id="xferWho"></p>
+      <div class="field">
+        <label for="xferPerson">Who is taking it <span class="req" style="color:var(--orange);font-weight:700;">*</span></label>
+        <select id="xferPerson"><option value="" selected disabled>Pick a name</option></select>
+      </div>
+      <div class="field">
+        <label for="xferNote">Note <span style="text-transform:none; font-weight:400; color:#777;">(optional)</span></label>
+        <textarea id="xferNote" rows="2" placeholder="Why, or where it is going..." autocomplete="off"></textarea>
+      </div>
+      <div class="buttons">
+        <button class="go" id="xferGo" disabled>Send handoff</button>
+        <button class="cancel" id="xferClose">Cancel</button>
+      </div>
+      <p class="privacyNote" style="margin-top:14px; padding-top:0;">It stays on your record until they accept. Both of you get an email.</p>
+    </div>
+  </div>
   <!-- QR scanner library (jsQR - lightweight, no build step needed) -->
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <script>
@@ -193,6 +247,9 @@
    const RETURN_URL       = "https://haggertybuilds.app.n8n.cloud/webhook/sb-record-return";
    const UNDO_URL         = "https://haggertybuilds.app.n8n.cloud/webhook/sb-undo-return";
    const UNDO_WINDOW_MS   = 5 * 60 * 1000;
+   const TRANSFER_URL     = "https://haggertybuilds.app.n8n.cloud/webhook/sb-transfer-request";
+   const TRANSFER_RESPOND = "https://haggertybuilds.app.n8n.cloud/webhook/sb-transfer-respond";
+   const MY_TRANSFERS_URL = "https://haggertybuilds.app.n8n.cloud/webhook/sb-my-transfers";
     // ----------------------
     // ---- Supabase direct-upload (browser uploads the return photo straight to Storage) ----
     const SUPABASE_URL       = "https://tdflgfuqjnwctadsjizz.supabase.co";
@@ -320,7 +377,9 @@
     function writeCache(data){
       try{ sessionStorage.setItem(CACHE_KEY, JSON.stringify({savedAt: Date.now(), data})); } catch(e){}
     }
+    let peopleList = [];
     function fillNames(data){
+      peopleList = data.people || [];
       const sel = document.getElementById('name');
       const ph = document.getElementById('namePlaceholder');
       if(ph) ph.textContent = 'Select your name';
@@ -352,6 +411,7 @@
     document.getElementById('name').addEventListener('change', async (e) => {
       const person = e.target.value;
       if(!person) return;
+      loadTransfers(person);
       await loadItems(person);
     });
     async function loadItems(person){
@@ -400,12 +460,20 @@
           <div class="info">
             <div class="nm"></div>
             <div class="meta"></div>
+            ${it.transferPending ? '<span class="xferTag">Handoff pending</span><button type="button" class="xferCancel">Cancel handoff</button>' : ''}
           </div>
-          <button class="ret">Return</button>
+          <div class="btns">
+            <button class="ret">Return</button>
+            ${it.transferPending ? '' : '<button type="button" class="xfer">Transfer</button>'}
+          </div>
         `;
         card.querySelector('.nm').textContent = it.item;
         const th = card.querySelector('img.thumb'); if (th) { th.src = it.photoUrl; th.onerror = () => th.remove(); }
         card.querySelector('.meta').textContent = dueLabel;
+        const xb = card.querySelector('.xfer');
+        if (xb) xb.addEventListener('click', () => openTransferModal(it));
+        const xc = card.querySelector('.xferCancel');
+        if (xc) xc.addEventListener('click', () => cancelTransfer(it, xc));
         const btn = card.querySelector('.ret');
         btn.addEventListener('click', () => {
           if(btn.disabled) return;
@@ -664,6 +732,99 @@
         window.__returning = false;
       }
     });
+    // ==================================================================
+    // Transfer to teammate: request, cancel, and the incoming Accept/Decline banner
+    // ==================================================================
+    let xferItem = null;
+    function openTransferModal(it){
+      xferItem = it;
+      const me = document.getElementById('name').value;
+      const sel = document.getElementById('xferPerson');
+      sel.innerHTML = '<option value="" selected disabled>Pick a name</option>';
+      peopleList.filter(p => p.name !== me).forEach(p => {
+        const o = document.createElement('option'); o.value = p.name; o.textContent = p.name; sel.appendChild(o);
+      });
+      document.getElementById('xferWho').textContent = it.item + (it.dueBack ? ' · due back ' + fmt(it.dueBack) : '');
+      document.getElementById('xferNote').value = '';
+      document.getElementById('xferGo').disabled = true;
+      document.getElementById('xferGo').textContent = 'Send handoff';
+      document.getElementById('xferModal').classList.add('show');
+    }
+    function closeTransferModal(){ document.getElementById('xferModal').classList.remove('show'); xferItem = null; }
+    document.getElementById('xferPerson').addEventListener('change', () => {
+      document.getElementById('xferGo').disabled = !document.getElementById('xferPerson').value;
+    });
+    document.getElementById('xferClose').addEventListener('click', closeTransferModal);
+    document.getElementById('xferModal').addEventListener('click', (e) => { if (e.target.id === 'xferModal') closeTransferModal(); });
+    document.getElementById('xferGo').addEventListener('click', async () => {
+      const it = xferItem; if (!it) return;
+      const toPerson = document.getElementById('xferPerson').value;
+      const note = document.getElementById('xferNote').value.trim();
+      if (!toPerson) return;
+      const btn = document.getElementById('xferGo');
+      btn.disabled = true; btn.textContent = 'Sending…';
+      try {
+        const res = await fetch(TRANSFER_URL, { method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ checkoutId: it.checkoutId, toPerson, note }) });
+        const data = await res.json().catch(() => null);
+        if (!data || data.ok !== true) { toast((data && data.message) || 'Could not send, try again'); btn.disabled = false; btn.textContent = 'Send handoff'; return; }
+        closeTransferModal();
+        toast('Sent to ' + toPerson.replace(/\.$/, '') + '. Waiting on them to accept.', true);
+        const sel = document.getElementById('name'); if (sel.value) loadItems(sel.value);
+      } catch(e) { toast('No signal, try again'); btn.disabled = false; btn.textContent = 'Send handoff'; }
+    });
+    async function cancelTransfer(it, el){
+      if (!it.transferCode) return;
+      el.disabled = true; el.textContent = 'Cancelling…';
+      try {
+        const res = await fetch(TRANSFER_RESPOND + '?code=' + encodeURIComponent(it.transferCode) + '&action=cancel&format=json', { cache: 'no-store' });
+        const data = await res.json().catch(() => null);
+        if (data && data.ok) toast('Handoff cancelled'); else toast((data && data.message) || 'Could not cancel');
+      } catch(e) { toast('No signal, try again'); }
+      const sel = document.getElementById('name'); if (sel.value) loadItems(sel.value);
+    }
+    // Incoming: someone is handing this person a tool
+    let incomingQueue = [];
+    async function loadTransfers(person){
+      const bar = document.getElementById('xferBar');
+      bar.classList.remove('show');
+      try {
+        const res = await fetch(MY_TRANSFERS_URL + '?person=' + encodeURIComponent(person), { cache: 'no-store' });
+        const data = await res.json();
+        incomingQueue = (data && data.incoming) || [];
+        showNextIncoming();
+      } catch(e) { /* silent */ }
+    }
+    function showNextIncoming(){
+      const bar = document.getElementById('xferBar');
+      const t = incomingQueue[0];
+      if (!t) { bar.classList.remove('show'); return; }
+      const txt = document.getElementById('xferBarText');
+      txt.innerHTML = '<b></b> is handing you <b></b>.' + (t.note ? '<small></small>' : '') + (t.dueBack ? '<small></small>' : '');
+      const bs = txt.querySelectorAll('b'); bs[0].textContent = t.fromName; bs[1].textContent = t.item;
+      const sm = txt.querySelectorAll('small'); let i = 0;
+      if (t.note) sm[i++].textContent = '"' + t.note + '"';
+      if (t.dueBack) sm[i++].textContent = 'Due back ' + fmt(t.dueBack) + '. It goes on your record once you accept.';
+      document.getElementById('xferAccept').disabled = false;
+      document.getElementById('xferDecline').disabled = false;
+      bar.classList.add('show');
+    }
+    async function respondIncoming(action){
+      const t = incomingQueue[0]; if (!t) return;
+      const a = document.getElementById('xferAccept'), d = document.getElementById('xferDecline');
+      a.disabled = true; d.disabled = true;
+      try {
+        const res = await fetch(TRANSFER_RESPOND + '?code=' + encodeURIComponent(t.transferCode) + '&action=' + action + '&format=json', { cache: 'no-store' });
+        const data = await res.json().catch(() => null);
+        if (data && data.ok) toast(action === 'accept' ? (t.item + ' is now on your list') : 'Declined', action === 'accept');
+        else toast((data && data.message) || 'Could not update');
+      } catch(e) { toast('No signal, try again'); a.disabled = false; d.disabled = false; return; }
+      incomingQueue.shift();
+      showNextIncoming();
+      const sel = document.getElementById('name'); if (sel.value) loadItems(sel.value);
+    }
+    document.getElementById('xferAccept').addEventListener('click', () => respondIncoming('accept'));
+    document.getElementById('xferDecline').addEventListener('click', () => respondIncoming('decline'));
     // ---- Voice notes for the return modal (Web Speech API), same pattern as checkout ----
     (function setupReturnMic(){
       const btn = document.getElementById('returnMicBtn');

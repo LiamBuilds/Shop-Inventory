@@ -447,6 +447,7 @@
       if (view === 'checkouts') return renderAhrenCheckouts(body);
       if (view === 'overdue') return renderAhrenOverdue(body);
       if (view === 'activity') return renderAhrenActivity(body);
+      if (view === 'transfers') return renderAhrenTransfers(body);
       renderAhrenHome(body);
     }
     function renderAhrenHome(body){
@@ -457,8 +458,31 @@
       tiles.innerHTML = ''
         + tile('checkouts', 'Checked out', s.totalOut, s.uniquePeopleWithGear + ' people', '', iconEquipment())
         + tile('overdue', 'Overdue', s.overdueCount, s.overdueCount === 0 ? 'none' : (s.overdueCount + ' late'), s.overdueCount > 0 ? 'hot' : '', iconLate())
-        + tile('activity', 'Activity', (currentData.recentReturns.length + currentData.activeCheckouts.filter(c => c.checkOut).length), 'last 24h', '', iconActivity());
+        + tile('activity', 'Activity', (currentData.recentReturns.length + currentData.activeCheckouts.filter(c => c.checkOut).length), 'last 24h', '', iconActivity())
+        + tile('transfers', 'Handoffs waiting', (s.pendingTransferCount || 0), (s.staleTransferCount || 0) > 0 ? (s.staleTransferCount + ' over 24h') : 'none stuck', (s.staleTransferCount || 0) > 0 ? 'hot' : '', iconActivity());
       body.appendChild(tiles);
+    }
+    function renderAhrenTransfers(body){
+      document.getElementById('viewTitle').textContent = 'Handoffs Waiting on Acceptance';
+      const items = currentData.pendingTransfers || [];
+      if (items.length === 0){
+        body.appendChild(fromHtml('<div class="empty">No handoffs waiting.<small>When a crew member transfers a tool to a teammate, it shows here until the teammate accepts.</small></div>'));
+        return;
+      }
+      const stale = items.filter(t => t.stale).length;
+      const stats = document.createElement('div');
+      stats.className = 'statsBar';
+      stats.innerHTML = '<div class="miniStat"><b>' + items.length + '</b> waiting</div>'
+        + '<div class="miniStat ' + (stale > 0 ? 'hot' : '') + '"><b>' + stale + '</b> over 24 hours</div>';
+      body.appendChild(stats);
+      const rows = items.map(t => {
+        const age = t.hoursWaiting < 1 ? 'under an hour' : (t.hoursWaiting < 48 ? t.hoursWaiting + ' hr' : Math.floor(t.hoursWaiting / 24) + ' days');
+        const badge = t.stale ? '<span class="badge b-late">' + age + '</span>' : '<span class="badge b-ok">' + age + '</span>';
+        const nudged = t.nudged ? ' <span style="color:var(--muted);font-size:11px;">reminded</span>' : '';
+        return '<tr' + (t.stale ? ' class="overdue"' : '') + '><td><b>' + esc(t.item) + '</b></td><td>' + esc(t.fromName) + '</td><td>' + esc(t.toName) + '</td><td>' + esc(t.destination || '-') + '</td><td>' + esc(t.note || '-') + '</td><td>' + badge + nudged + '</td></tr>';
+      }).join('');
+      body.appendChild(fromHtml('<div class="tableWrap"><table><thead><tr><th>Item</th><th>From</th><th>To</th><th>Where</th><th>Note</th><th>Waiting</th></tr></thead><tbody>' + rows + '</tbody></table></div>'));
+      body.appendChild(fromHtml('<p style="color:var(--muted);font-size:13px;margin-top:12px;">The tool stays on the giver\'s record until the receiver accepts. Both get a reminder email after 24 hours.</p>'));
     }
     function renderAhrenCheckouts(body){
       document.getElementById('viewTitle').textContent = 'All Active Checkouts';

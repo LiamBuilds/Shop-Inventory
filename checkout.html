@@ -155,6 +155,17 @@
   .toolSelected span{font-size:17px; font-weight:600;}
   .toolSelected button{appearance:none; background:transparent; border:0; color:var(--muted); font-size:26px; cursor:pointer; padding:0 4px; line-height:1;}
   #toolSearch:focus{border-radius:12px 12px 0 0;}
+  /* Incoming handoff banner */
+  .xferBar{display:none; background:var(--card); border:1.5px solid var(--orange); border-radius:14px; padding:14px 16px; margin-bottom:16px;}
+  .xferBar.show{display:block;}
+  .xferBar .xb{font-size:15px; line-height:1.4; margin-bottom:10px;}
+  .xferBar .xb small{display:block; color:var(--muted); font-size:13px; margin-top:4px;}
+  .xferBar .xa{display:flex; gap:8px; align-items:center;}
+  .xferBar .xa button{appearance:none; border:0; border-radius:10px; padding:11px 16px; font-size:14px; font-weight:700; font-family:inherit; cursor:pointer;}
+  .xferBar .accept{background:var(--green); color:var(--ink);}
+  .xferBar .decline{background:transparent; color:var(--paper); border:1.5px solid var(--gray) !important;}
+  .xferBar .xa button:disabled{opacity:.6;}
+  .xferBar .more{margin-left:auto; color:var(--orange); font-size:13px; text-decoration:underline;}
   /* Multi-item cart */
   .addBtn{appearance:none; width:100%; margin-top:10px; background:transparent; border:1.5px solid var(--orange); color:var(--orange);
     border-radius:12px; padding:13px; font-size:15px; font-weight:700; font-family:inherit; cursor:pointer;}
@@ -204,6 +215,15 @@
     <div id="decisionBar" class="decisionBar">
       <div class="body" id="decisionBody"></div>
       <button class="close" id="decisionClose" aria-label="Dismiss">&times;</button>
+    </div>
+    <!-- Incoming handoff banner: a teammate is transferring a checkout to this person -->
+    <div id="xferBar" class="xferBar">
+      <div class="xb" id="xferBarText"></div>
+      <div class="xa">
+        <button type="button" class="accept" id="xferAccept">Accept</button>
+        <button type="button" class="decline" id="xferDecline">Decline</button>
+        <a class="more" href="return.html">Open my items</a>
+      </div>
     </div>
     <!-- SCAN SCREEN -->
     <div id="scanScreen">
@@ -331,6 +351,8 @@
     const GET_SECTION_URL  = "https://haggertybuilds.app.n8n.cloud/webhook/sb-shop-section";
     const CHECKOUT_WEBHOOK = "https://haggertybuilds.app.n8n.cloud/webhook/sb-record-checkout";
     const MY_DECISIONS_URL = "https://haggertybuilds.app.n8n.cloud/webhook/sb-my-decisions";
+    const MY_TRANSFERS_URL = "https://haggertybuilds.app.n8n.cloud/webhook/sb-my-transfers";
+    const TRANSFER_RESPOND = "https://haggertybuilds.app.n8n.cloud/webhook/sb-transfer-respond";
     // ------------------
     // Known section names (in case the tools API doesn't have them yet)
     const KNOWN_SECTIONS = ["Equipment","Power Tools","Lighting","Rigging","Safety","Ladders","Tools","Cleaning","Landscaping","Large Grey Bins","Pallets","Dehumidifiers","Air Movers","Scrubbers AFD","Fans","Extractors"];
@@ -741,7 +763,48 @@
     // Check for pending decisions when name changes
     document.getElementById('name').addEventListener('change', () => {
       checkDecisions(document.getElementById('name').value);
+      loadTransfers(document.getElementById('name').value);
     });
+    // ---- Incoming handoffs (same feed as the return page) ----
+    let incomingQueue = [];
+    async function loadTransfers(person){
+      const bar = document.getElementById('xferBar');
+      bar.classList.remove('show');
+      if (!person) return;
+      try {
+        const res = await fetch(MY_TRANSFERS_URL + '?person=' + encodeURIComponent(person), { cache: 'no-store' });
+        const data = await res.json();
+        incomingQueue = (data && data.incoming) || [];
+        showNextIncoming();
+      } catch(e) { /* silent */ }
+    }
+    function showNextIncoming(){
+      const bar = document.getElementById('xferBar');
+      const t = incomingQueue[0];
+      if (!t) { bar.classList.remove('show'); return; }
+      const txt = document.getElementById('xferBarText');
+      txt.innerHTML = '<b></b> is handing you <b></b>.' + (t.note ? '<small></small>' : '');
+      const bs = txt.querySelectorAll('b'); bs[0].textContent = t.fromName; bs[1].textContent = t.item;
+      if (t.note) txt.querySelector('small').textContent = '"' + t.note + '"';
+      document.getElementById('xferAccept').disabled = false;
+      document.getElementById('xferDecline').disabled = false;
+      bar.classList.add('show');
+    }
+    async function respondIncoming(action){
+      const t = incomingQueue[0]; if (!t) return;
+      const a = document.getElementById('xferAccept'), d = document.getElementById('xferDecline');
+      a.disabled = true; d.disabled = true;
+      try {
+        const res = await fetch(TRANSFER_RESPOND + '?code=' + encodeURIComponent(t.transferCode) + '&action=' + action + '&format=json', { cache: 'no-store' });
+        const data = await res.json().catch(() => null);
+        if (data && data.ok) toast(action === 'accept' ? (t.item + ' is now on your list') : 'Declined');
+        else toast((data && data.message) || 'Could not update');
+      } catch(e) { toast('No signal, try again'); a.disabled = false; d.disabled = false; return; }
+      incomingQueue.shift();
+      showNextIncoming();
+    }
+    document.getElementById('xferAccept').addEventListener('click', () => respondIncoming('accept'));
+    document.getElementById('xferDecline').addEventListener('click', () => respondIncoming('decline'));
     // Dismiss decision banner
     document.getElementById('decisionClose').addEventListener('click', () => {
       const bar = document.getElementById('decisionBar');
