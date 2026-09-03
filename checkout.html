@@ -1024,9 +1024,15 @@
       activeCategory = '';
       goToScan();
     });
-    // Start
+    // Start. A printed section code encodes checkout.html?category=X so it works from the phone camera too.
     loadData();
-    startScanner();
+    (function startFromUrl(){
+      let cat = '';
+      try { cat = new URLSearchParams(location.search).get('category') || ''; } catch(e) {}
+      cat = cat.trim();
+      if (cat && cat.length < 60) { goToForm(cat); history.replaceState(null, '', location.pathname); }
+      else startScanner();
+    })();
     // Default the due-date picker to today and prevent picking a date in the past
     (function initDueDate(){
       const dd = document.getElementById('dueDate');
