@@ -168,9 +168,6 @@
         <label for="trailerSel">Trailer <span class="req">*</span></label>
         <select id="trailerSel">
           <option value="" selected disabled>Pick a trailer</option>
-          <option value="Lowboy">Lowboy</option>
-          <option value="Large Dump">Large Dump</option>
-          <option value="Small Dump">Small Dump</option>
         </select>
       </div>
 
@@ -223,11 +220,12 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    const DATA_URL = "https://haggertybuilds.app.n8n.cloud/webhook/trailer-data";
-    const RESERVE_URL = "https://haggertybuilds.app.n8n.cloud/webhook/trailer-reserve";
-    const COMPLETE_URL = "https://haggertybuilds.app.n8n.cloud/webhook/trailer-complete";
+    const DATA_URL = "https://haggertybuilds.app.n8n.cloud/webhook/sb-trailer-data";
+    const RESERVE_URL = "https://haggertybuilds.app.n8n.cloud/webhook/sb-trailer-reserve";
+    const COMPLETE_URL = "https://haggertybuilds.app.n8n.cloud/webhook/sb-trailer-complete";
 
-    const TRAILERS = ['Lowboy', 'Large Dump', 'Small Dump'];
+    // Trailer list comes from the trailers table via the data feed; this is only the fallback if that fails.
+    let TRAILERS = ['Lowboy', 'Large Dump', 'Small Dump', 'Texas Pride (8 Yard Dumpster)'];
     let currentData = null;
     let weekOffset = 0; // 0 = this week, +1 = next week, -1 = last week
     let t;
@@ -264,6 +262,13 @@
       document.getElementById('loading').style.display = 'none';
       document.getElementById('main').style.display = 'block';
 
+      // Trailer list from the database, dropdown rebuilt to match
+      if (Array.isArray(currentData.trailers) && currentData.trailers.length) TRAILERS = currentData.trailers.slice();
+      const tsel = document.getElementById('trailerSel');
+      const keep = tsel.value;
+      tsel.innerHTML = '<option value="" selected disabled>Pick a trailer</option>';
+      TRAILERS.forEach(tr => { const o = document.createElement('option'); o.value = tr; o.textContent = tr; tsel.appendChild(o); });
+      if (keep && TRAILERS.includes(keep)) tsel.value = keep;
       // Populate name dropdown
       const sel = document.getElementById('personSel');
       sel.innerHTML = '<option value="" selected disabled>Pick your name</option>';
