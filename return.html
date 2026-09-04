@@ -258,7 +258,7 @@
     // ---- Shop geofence ----
     // Locations live in the shop_locations table (Supabase) so both buildings can be managed without redeploying.
     // The fallback below is only used if that fetch fails. The server re-checks distance on every return regardless.
-    const SHOP_LOCATIONS_FALLBACK = [{ name: 'Haggerty Shop (2474 Wigwam Dr)', lat: 37.9854, lng: -121.25414, radius_m: 150 }];
+    const SHOP_LOCATIONS_FALLBACK = [{ name: 'Haggerty Shop (2474 Wigwam Dr)', lat: 37.9854, lng: -121.25414, radius_m: 150 }, { name: 'RHINO Restores (3149 Tomahawk Dr)', lat: 37.9624, lng: -121.2359, radius_m: 150 }];
     let shopLocations = SHOP_LOCATIONS_FALLBACK;
     (async function loadShopLocations(){
       try{

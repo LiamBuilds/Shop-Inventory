@@ -155,6 +155,11 @@
   .toolSelected span{font-size:17px; font-weight:600;}
   .toolSelected button{appearance:none; background:transparent; border:0; color:var(--muted); font-size:26px; cursor:pointer; padding:0 4px; line-height:1;}
   #toolSearch:focus{border-radius:12px 12px 0 0;}
+  /* Presence check */
+  .verifyBox{padding:12px 14px; border-radius:10px; font-size:14px; line-height:1.4; background:rgba(154,154,154,.10); border:1px solid var(--line); color:var(--muted);}
+  .verifyBox.ok{background:rgba(63,178,127,.14); border-color:rgba(63,178,127,.5); color:var(--paper);}
+  .verifyBox.warn{background:rgba(226,92,78,.10); border-color:rgba(226,92,78,.4); color:var(--paper);}
+  .scanFallback{appearance:none; background:transparent; border:0; color:var(--orange); font-size:14px; font-family:inherit; cursor:pointer; padding:8px 0; text-decoration:underline; margin-top:4px;}
   /* Incoming handoff banner */
   .xferBar{display:none; background:var(--card); border:1.5px solid var(--orange); border-radius:14px; padding:14px 16px; margin-bottom:16px;}
   .xferBar.show{display:block;}
@@ -297,6 +302,11 @@
       <div class="field">
         <label for="dueDate">When will you bring it back? <span class="req">*</span></label>
         <input id="dueDate" type="date" required>
+      </div>
+      <div class="field">
+        <label>Location check <span class="req">*</span></label>
+        <div id="verifyStatus" class="verifyBox">Checking your location…</div>
+        <button type="button" class="scanFallback" id="qrVerifyBtn" style="display:none;">Scan any shop QR card instead</button>
       </div>
       <button class="submit" id="submit">Check Out Tool</button>
     </div>
@@ -627,6 +637,84 @@
       toast(current + ' added');
     });
     document.getElementById('addMore').addEventListener('click', showManualPicker);
+    // -------- Presence verification (GPS at the shop, or any shop QR card) --------
+    // Mirrors the return page. The server re-checks every checkout regardless of what the page decides.
+    const SUPABASE_URL = "https://tdflgfuqjnwctadsjizz.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_w9xkQQE07152NL8faFVTwQ_LSJ9Hf_d";
+    let presence = null;          // { method:'gps', lat, lng } | { method:'qr', qrValue }
+    let verifyScanMode = false;   // scanner opened just to prove presence, not to pick a section
+    let shopLocations = [{ name: 'Haggerty Shop', lat: 37.9854, lng: -121.25414, radius_m: 150 }, { name: 'RHINO Restores', lat: 37.9624, lng: -121.2359, radius_m: 150 }];
+    (async function loadShopLocations(){
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/shop_locations?select=name,lat,lng,radius_m&active=eq.true`,
+          { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY } });
+        const rows = await res.json();
+        if (Array.isArray(rows) && rows.length) shopLocations = rows;
+      } catch(e) { /* keep fallback */ }
+    })();
+    function haversineMeters(lat1, lon1, lat2, lon2){
+      const R = 6371000, toRad = d => d * Math.PI / 180;
+      const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+    function insideShop(lat, lng){
+      return shopLocations.some(l => haversineMeters(lat, lng, Number(l.lat), Number(l.lng)) <= Number(l.radius_m || 150));
+    }
+    function looksLikeShopCode(v){
+      const t = String(v || '').trim();
+      return /^HAGGERTY-/i.test(t) || /^https?:\/\/liambuilds\.github\.io\/shop-inventory\//i.test(t);
+    }
+    function setPresence(p){
+      presence = p;
+      const vs = document.getElementById('verifyStatus');
+      const btn = document.getElementById('qrVerifyBtn');
+      if (p && p.method === 'qr') { vs.className = 'verifyBox ok'; vs.textContent = 'Shop QR card scanned. Location verified.'; btn.style.display = 'none'; }
+      else if (p && p.method === 'gps') { vs.className = 'verifyBox ok'; vs.textContent = "You're at the shop. Location verified."; btn.style.display = 'none'; }
+      else { vs.className = 'verifyBox'; vs.textContent = 'Checking your location…'; btn.style.display = 'none'; }
+    }
+    let geoTried = false;
+    function startGeoCheck(){
+      if (presence) return;
+      const vs = document.getElementById('verifyStatus');
+      const btn = document.getElementById('qrVerifyBtn');
+      if (!('geolocation' in navigator)) {
+        vs.className = 'verifyBox warn'; vs.textContent = "Your browser can't check location here."; btn.style.display = 'block'; return;
+      }
+      if (geoTried) return;
+      geoTried = true;
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          if (presence) return;
+          const lat = pos.coords.latitude, lng = pos.coords.longitude;
+          if (insideShop(lat, lng)) setPresence({ method: 'gps', lat, lng });
+          else { vs.className = 'verifyBox warn'; vs.textContent = "Doesn't look like you're at the shop. Scan any shop QR card instead."; btn.style.display = 'block'; }
+        },
+        () => {
+          if (presence) return;
+          vs.className = 'verifyBox warn'; vs.textContent = "Couldn't get your location. Scan any shop QR card instead."; btn.style.display = 'block';
+        },
+        { timeout: 8000, maximumAge: 60000 }
+      );
+    }
+    document.getElementById('qrVerifyBtn').addEventListener('click', () => {
+      verifyScanMode = true;
+      document.querySelector('#scanScreen .lead').textContent = 'Scan any shop QR card';
+      document.querySelector('#scanScreen .sub').textContent = 'Any of the cards posted at the shop will do. This just confirms you are here.';
+      document.getElementById('formScreen').style.display = 'none';
+      document.getElementById('scanScreen').style.display = 'block';
+      startScanner();
+    });
+    function finishVerifyScan(raw){
+      setPresence({ method: 'qr', qrValue: raw });
+      verifyScanMode = false;
+      document.querySelector('#scanScreen .lead').textContent = 'Scan the section QR';
+      document.querySelector('#scanScreen .sub').textContent = 'Point your camera at the QR code on the shelf.';
+      stopScanner();
+      document.getElementById('scanScreen').style.display = 'none';
+      document.getElementById('formScreen').style.display = 'flex';
+      toast('Location verified');
+    }
     // -------- Screen management --------
     // Mitigation categories that require Alice's approval for non-approved users
      
@@ -641,6 +729,8 @@
       document.getElementById('scanScreen').style.display = 'none';
       document.getElementById('formScreen').style.display = 'flex';
       stopScanner();
+      setPresence(presence);
+      startGeoCheck();
       // Show loading state on the VISIBLE tool search box
       const toolSearch = document.getElementById('toolSearch');
       if (toolSearch){
@@ -726,7 +816,13 @@
           const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
           const code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts:'dontInvert' });
           if (code && code.data) {
-            let section = code.data.trim();
+            const raw = code.data.trim();
+            if (looksLikeShopCode(raw) && !presence) presence = { method: 'qr', qrValue: raw };
+            if (verifyScanMode) {
+              if (looksLikeShopCode(raw)) { finishVerifyScan(raw); return; }
+              requestAnimationFrame(scanTick); return;
+            }
+            let section = raw;
             // If the QR encoded a URL, extract just the section piece
             const m = section.match(/[?&]category=([^&]+)/i);
             if (m) section = decodeURIComponent(m[1]);
@@ -897,6 +993,7 @@
       if(pendingItems().length === 0){ toast("Pick a tool"); return; }
       if(!dest){ toast("Enter the job # or job name"); document.getElementById('dest').focus(); return; }
       if(!dueDateStr){ toast("Pick a return date"); document.getElementById('dueDate').focus(); return; }
+      if(!presence){ toast('Verify you are at the shop first'); document.getElementById('verifyStatus').scrollIntoView({ block: 'center', behavior: 'smooth' }); startGeoCheck(); return; }
       // If any item is mitigation equipment AND person is not approved, collect one justification for the batch
       if (currentNeedsApproval()) {
         document.getElementById('modalJust').value = '';
@@ -934,7 +1031,11 @@
         const payload = {
           person: b.name, tool: u.item, destination: b.dest, notes: b.notes,
           justification: isMitigationCategory(u.section) ? b.justification : '', dueDate: b.dueDateStr,
-          checkedOutAt: new Date().toISOString(), section: u.section
+          checkedOutAt: new Date().toISOString(), section: u.section,
+          verificationMethod: presence ? presence.method : null,
+          lat: presence && presence.lat != null ? presence.lat : null,
+          lng: presence && presence.lng != null ? presence.lng : null,
+          qrValue: presence && presence.qrValue ? presence.qrValue : null
         };
         let data = null;
         try {
@@ -1030,7 +1131,7 @@
       let cat = '';
       try { cat = new URLSearchParams(location.search).get('category') || ''; } catch(e) {}
       cat = cat.trim();
-      if (cat && cat.length < 60) { goToForm(cat); history.replaceState(null, '', location.pathname); }
+      if (cat && cat.length < 60) { presence = { method: 'qr', qrValue: location.href }; goToForm(cat); history.replaceState(null, '', location.pathname); }
       else startScanner();
     })();
     // Default the due-date picker to today and prevent picking a date in the past
