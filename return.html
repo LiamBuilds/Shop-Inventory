@@ -207,7 +207,7 @@
       <div class="field">
         <label>Location check <span class="req">*</span></label>
         <div id="verifyStatus" class="verifyBox">Checking your location…</div>
-        <button type="button" class="scanFallback" id="qrFallbackBtn" style="display:none;">Scan the shop QR code instead</button>
+        <button type="button" class="scanFallback" id="qrFallbackBtn" style="display:none;">Scan a shop QR card instead</button>
         <div id="qrScanArea" class="qrScanArea" style="display:none;">
           <video id="returnScanVideo" playsinline muted autoplay></video>
         </div>
@@ -277,9 +277,13 @@
       }
       return best;
     }
-    // Static QR code posted at the shop as a backup when GPS is unavailable/denied/out of range.
-    // The scanned value is sent to the server, which checks it against the stored shop code.
-    const SHOP_QR_PREFIX = "HAGGERTY-";
+    // QR backup when GPS is unavailable/denied/out of range. Any card posted at the shop works:
+    // the dedicated HAGGERTY- code or one of the section cards (a Shop-Inventory URL).
+    // The scanned value is sent to the server, which does the real check.
+    function looksLikeShopCode(v){
+      const s = String(v || '').trim();
+      return /^HAGGERTY-/i.test(s) || /^https?:\/\/liambuilds\.github\.io\/shop-inventory\//i.test(s);
+    }
     function haversineMeters(lat1, lon1, lat2, lon2){
       const R = 6371000;
       const toRad = d => d * Math.PI / 180;
@@ -561,14 +565,14 @@
             stopQrFallbackScanner();
           } else {
             vs.className = 'verifyBox warn';
-            vs.textContent = "Doesn't look like you're at the shop. Scan the QR code posted there instead.";
+            vs.textContent = "Doesn't look like you're at the shop. Scan any QR card posted there instead.";
             qrBtn.style.display = 'block';
           }
           updateConfirmEnabled();
         },
         () => {
           vs.className = 'verifyBox warn';
-          vs.textContent = "Couldn't get your location. Scan the QR code at the shop instead.";
+          vs.textContent = "Couldn't get your location. Scan any QR card at the shop instead.";
           qrBtn.style.display = 'block';
           updateConfirmEnabled();
         },
@@ -609,7 +613,7 @@
         try{
           const imgData = qrCtx.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
           const code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'dontInvert' });
-          if(code && code.data && code.data.trim().toUpperCase().startsWith(SHOP_QR_PREFIX)){
+          if(code && code.data && looksLikeShopCode(code.data)){
             returnVerification = { method: 'qr', qrValue: code.data.trim() };
             const vs = document.getElementById('verifyStatus');
             vs.className = 'verifyBox ok';
@@ -708,8 +712,8 @@
             const vs = document.getElementById('verifyStatus');
             vs.className = 'verifyBox warn';
             vs.textContent = data.error === 'qr_invalid'
-              ? "That wasn't the shop code. Scan the QR code posted at the shop."
-              : "The shop didn't confirm your location. Scan the QR code posted there instead.";
+              ? "That wasn't a shop code. Scan any QR card posted at the shop."
+              : "The shop didn't confirm your location. Scan any QR card posted there instead.";
             document.getElementById('qrFallbackBtn').style.display = 'block';
             updateConfirmEnabled();
           }
